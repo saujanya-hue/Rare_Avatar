@@ -3243,3 +3243,653 @@ body.dark-theme .evidence-subtab-btn.active {
     font-size: 0.82rem;
     border-left: 3px solid currentColor;
 }
+
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN SYSTEM (MOBILE, TABLET, DESKTOP)
+   ========================================================================== */
+
+/* Global Responsive Base Elements */
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+img, svg, canvas, video {
+    max-width: 100%;
+    height: auto;
+}
+
+.chart-wrapper canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+.table-responsive,
+.lab-table-container,
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   BREAKPOINT 1: LARGE TABLETS / SMALL LAPTOPS (max-width: 1200px)
+   ========================================================================== */
+@media (max-width: 1200px) {
+    .workspace-grid {
+        grid-template-columns: 320px 1fr 1fr;
+        gap: 16px;
+    }
+
+    .consultation-layout {
+        grid-template-columns: 1fr 340px;
+        gap: 16px;
+    }
+
+    .arena-kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT 2: TABLETS & MEDIUM SCREENS (max-width: 1024px)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .app-header {
+        padding: 10px 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-branding {
+        flex: 1 1 auto;
+    }
+
+    .header-badges {
+        order: 2;
+        margin-left: auto;
+        gap: 10px;
+    }
+
+    .header-center-controls {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
+
+    .avatar-selector-box {
+        flex: 1;
+        max-width: 480px;
+    }
+
+    .avatar-selector-box select {
+        width: 100%;
+    }
+
+    .workspace-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .patient-identity-card {
+        grid-column: span 2;
+    }
+
+    .consultation-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 0;
+        gap: 20px;
+    }
+
+    .chat-main-card {
+        min-height: 540px;
+        height: 65vh;
+    }
+
+    .chat-messages-container {
+        max-height: calc(65vh - 160px);
+    }
+
+    .investigation-order-card {
+        max-height: 480px;
+    }
+
+    .multimodal-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .clinical-data-table {
+        min-width: 580px;
+    }
+
+    .benchmark-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .arena-matrix-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+
+    .trainee-submission-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .inspector-diff-grid,
+    .decision-comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT 3: MOBILE & SMALL TABLETS (max-width: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Mobile App Shell Layout */
+    .app-layout-container {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    /* Transform Sidebar into Touch-Friendly Horizontal Tab Bar */
+    .app-sidebar {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 85;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-subtle);
+        flex-direction: row !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        background: var(--bg-surface);
+    }
+
+    body.dark-theme .app-sidebar {
+        background: #0d1322;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    .sidebar-header,
+    .sidebar-footer,
+    .nav-section-label {
+        display: none !important;
+    }
+
+    .sidebar-nav-menu {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding: 8px 10px !important;
+        gap: 6px !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .sidebar-nav-menu::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-tab {
+        flex-shrink: 0 !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        padding: 7px 14px !important;
+        font-size: 0.8rem !important;
+        border-radius: var(--radius-full) !important;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        gap: 6px !important;
+    }
+
+    .app-sidebar .tab-text {
+        display: inline-block !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .nav-tab.active {
+        background: #1e293b;
+        color: #ffffff !important;
+        border-color: #1e293b;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-theme .nav-tab.active {
+        background: var(--accent-cyan);
+        color: #050b14 !important;
+        border-color: var(--accent-cyan);
+    }
+
+    .nav-tab.active::before {
+        display: none !important;
+    }
+
+    /* Main Content Area */
+    .main-content-area {
+        padding: 14px 10px;
+        min-width: 0;
+        width: 100%;
+    }
+
+    /* Top Header Bar */
+    .app-header {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .header-branding {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo-badge {
+        gap: 8px;
+    }
+
+    .logo-icon {
+        font-size: 1.6rem;
+    }
+
+    .logo-text h1 {
+        font-size: 1.15rem;
+    }
+
+    .logo-text .subtitle {
+        display: none;
+    }
+
+    .header-center-controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .avatar-selector-box {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #btn-create-avatar-modal {
+        width: 100%;
+    }
+
+    .header-badges {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    #header-user-badge {
+        font-size: 0.72rem;
+        padding: 4px 8px;
+    }
+
+    #btn-header-logout {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+
+    /* Tab 1: Workspace Grid Stacking */
+    .workspace-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .patient-identity-card {
+        grid-column: span 1;
+    }
+
+    .patient-profile-body {
+        padding: 16px 12px;
+    }
+
+    .profile-details-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .simulation-time-controls .btn-group {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .timeline-container {
+        padding: 14px;
+        max-height: 420px;
+    }
+
+    .symptoms-list {
+        padding: 14px;
+        max-height: 380px;
+    }
+
+    /* Tab 2: Consultation Interactive Mobile View */
+    .chat-main-card {
+        height: 520px;
+        min-height: 0;
+    }
+
+    .chat-messages-container {
+        padding: 12px;
+        max-height: 340px;
+    }
+
+    .consultation-header {
+        padding: 12px 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .chat-input-area {
+        padding: 10px 12px;
+    }
+
+    .chat-input-form {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chat-input-form input {
+        width: 100%;
+        padding: 10px 14px;
+    }
+
+    #btn-send-query {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* Tab 4: Progression Chart & Legend */
+    .trajectory-chart-wrapper {
+        margin: 8px;
+        width: calc(100% - 16px);
+        padding: 8px;
+        overflow-x: auto;
+    }
+
+    .trajectory-legend {
+        padding: 10px 12px;
+        gap: 8px 12px;
+        font-size: 0.75rem;
+    }
+
+    .uncertainty-explanation-boxes {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Tab 7: Benchmark Arena */
+    .arena-header-banner {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .arena-title-group h2 {
+        font-size: 1.25rem;
+    }
+
+    .arena-status-bar {
+        padding: 12px 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .status-meta {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .cohort-chips {
+        width: 100%;
+    }
+
+    .arena-table {
+        min-width: 540px;
+    }
+
+    /* Supervisor & Oversight Views */
+    .supervisor-banner {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .supervisor-banner h2 {
+        font-size: 1.2rem;
+    }
+
+    /* Mystery Mode Mobile */
+    #mystery-intake-selector {
+        padding: 18px 14px !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    #form-mystery-inquiry {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #form-mystery-inquiry button {
+        width: 100%;
+    }
+
+    /* Evidence Subtabs Navigation */
+    .arena-subtabs-nav {
+        display: flex;
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 6px;
+        gap: 6px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .evidence-subtab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.78rem;
+        padding: 6px 12px;
+    }
+
+    /* Population Cohort Config Grid */
+    .arena-config-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .arena-launch-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .arena-launch-row button {
+        width: 100%;
+    }
+
+    /* Modals Mobile Sizing */
+    .modal-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 12px auto;
+        max-height: 90vh;
+    }
+
+    .modal-xl {
+        width: 96vw !important;
+        max-width: 96vw !important;
+        margin: 8px auto;
+        max-height: 94vh;
+    }
+
+    .modal-header {
+        padding: 12px 16px;
+    }
+
+    .modal-body {
+        padding: 14px 16px;
+        max-height: calc(85vh - 110px);
+        overflow-y: auto;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .modal-footer {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    /* Auth Portal Tablet & Mobile */
+    .auth-portal-wrapper {
+        padding: 24px 16px;
+        min-height: 100dvh;
+    }
+
+    .auth-portal-card {
+        padding: 28px 20px;
+        max-width: 480px;
+    }
+
+    .auth-branding h1 {
+        font-size: 1.6rem;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT 4: PHONES & COMPACT SCREENS (max-width: 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+    /* Auth Portal Compact Mobile */
+    .auth-portal-wrapper {
+        padding: 14px 10px;
+    }
+
+    .auth-portal-card {
+        padding: 20px 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .auth-branding .logo-icon {
+        font-size: 2.2rem;
+    }
+
+    .auth-branding h1 {
+        font-size: 1.4rem;
+    }
+
+    .auth-branding .subtitle {
+        font-size: 0.78rem;
+    }
+
+    .auth-role-tabs {
+        flex-direction: column;
+        gap: 6px;
+        padding: 4px;
+    }
+
+    .auth-role-btn {
+        width: 100%;
+        padding: 9px 12px;
+        font-size: 0.8rem;
+        justify-content: flex-start;
+    }
+
+    /* Workspace Demographics Grid */
+    .profile-details-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .profile-avatar-graphic {
+        width: 72px;
+        height: 72px;
+        font-size: 2.6rem;
+    }
+
+    .patient-profile-body {
+        padding: 12px 8px;
+    }
+
+    /* KPI Cards on Compact Screens: 2 per row */
+    .arena-kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .kpi-card {
+        padding: 12px 10px;
+    }
+
+    .kpi-card .kpi-label {
+        font-size: 0.7rem;
+    }
+
+    .kpi-card .kpi-val {
+        font-size: 1.3rem;
+    }
+
+    .scorecard-kpi-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    /* Chips and Buttons */
+    .quick-inquiry-chips {
+        gap: 6px;
+    }
+
+    .chip-btn {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+
+    .btn {
+        padding: 9px 14px;
+        font-size: 0.82rem;
+    }
+
+    /* Header Badges Wrapping */
+    .header-badges {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .status-indicator {
+        justify-content: center;
+    }
+
+    #header-user-badge {
+        text-align: center;
+    }
+
+    #btn-header-logout {
+        width: 100%;
+        justify-content: center;
+    }
+}
