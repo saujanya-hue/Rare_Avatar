@@ -56,7 +56,18 @@ async def add_no_cache_headers(request, call_next):
 
 @app.middleware("http")
 async def normalize_api_path_middleware(request, call_next):
-    """Normalize requests so endpoints match whether /api prefix was preserved or stripped."""
+    """Normalize requests so endpoints match whether /api was rewritten, stripped, or preserved."""
+    orig_path = (
+        request.headers.get("x-forwarded-uri")
+        or request.headers.get("x-original-uri")
+        or request.headers.get("x-matched-path")
+        or request.headers.get("x-vercel-original-url")
+    )
+    if orig_path:
+        clean = orig_path.split("?")[0]
+        if clean.startswith("/api"):
+            request.scope["path"] = clean
+
     path = request.scope.get("path", "")
     if (
         path
