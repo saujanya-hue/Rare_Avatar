@@ -1,0 +1,8 @@
+[project]
+name = "rare-avatar"
+version = "1.0.0"
+description = "Rare-Disease Synthetic Patient Avatars Platform"
+requires-python = ">=3.10"
+
+[tool.vercel]
+entrypoint = "backend.app.main:app"
