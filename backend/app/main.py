@@ -33,7 +33,8 @@ app = FastAPI(
         "Supports interactive clinician training, explicit uncertainty bounds, privacy auditing, "
         "and controlled diagnostic algorithm stress-testing."
     ),
-    version="1.0.0"
+    version="1.0.0",
+    redirect_slashes=False
 )
 
 # CORS
