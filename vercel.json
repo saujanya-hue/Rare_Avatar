@@ -1,29 +1,35 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/main.py"
+      "src": "api/index.py",
+      "use": "@vercel/python"
     },
     {
-      "source": "/",
-      "destination": "/frontend/index.html"
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api(.*)",
+      "dest": "api/index.py"
     },
     {
-      "source": "/css/(.*)",
-      "destination": "/frontend/css/$1"
+      "src": "/css/(.*)",
+      "dest": "frontend/css/$1"
     },
     {
-      "source": "/js/(.*)",
-      "destination": "/frontend/js/$1"
+      "src": "/js/(.*)",
+      "dest": "frontend/js/$1"
     },
     {
-      "source": "/assets/(.*)",
-      "destination": "/frontend/assets/$1"
+      "src": "/assets/(.*)",
+      "dest": "frontend/assets/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
     }
   ]
 }
