@@ -53,6 +53,19 @@ async def add_no_cache_headers(request, call_next):
     response.headers["Expires"] = "0"
     return response
 
+@app.middleware("http")
+async def normalize_api_path_middleware(request, call_next):
+    """Normalize requests so endpoints match whether /api prefix was preserved or stripped."""
+    path = request.scope.get("path", "")
+    if (
+        path
+        and not path.startswith("/api")
+        and not any(path.endswith(ext) for ext in (".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".json"))
+        and path not in ("/", "/docs", "/redoc", "/openapi.json")
+    ):
+        request.scope["path"] = f"/api{path}"
+    return await call_next(request)
+
 # Include API Routers
 app.include_router(auth_router)
 app.include_router(patients_router)
@@ -88,6 +101,12 @@ def bootstrap_initial_avatars():
             print(f"[BOOTSTRAP] Initialized avatar {pt.patient_id} for {pt.disease.disease_name}")
         except Exception as e:
             print(f"[BOOTSTRAP ERROR] Failed to initialize {d_id}: {e}")
+
+# Seed avatars immediately on module load (vital for serverless environments)
+try:
+    bootstrap_initial_avatars()
+except Exception as _e:
+    pass
 
 
 # Serve Frontend
