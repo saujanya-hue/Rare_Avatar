@@ -2,6 +2,18 @@
  * API Client for RareAvatar Backend
  */
 const API = {
+    async _safeJson(res, defaultMsg = 'Request failed') {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (_) {
+            if (!res.ok) {
+                const clean = text.replace(/<[^>]*>/g, '').trim().slice(0, 150);
+                throw new Error(clean || `Server returned HTTP ${res.status}`);
+            }
+            throw new Error(defaultMsg);
+        }
+    },
     async listPatients() {
         const res = await fetch('/api/patients');
         if (!res.ok) throw new Error('Failed to fetch patients');
@@ -171,11 +183,11 @@ const API = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, role })
         });
+        const data = await this._safeJson(res, 'Login failed');
         if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || 'Login failed');
+            throw new Error(data.detail || data.message || 'Login failed');
         }
-        return await res.json();
+        return data;
     },
 
     async submitTraineeDiagnosis(submission) {
