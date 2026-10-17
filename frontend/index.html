@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RareAvatar — Synthetic Rare-Disease Clinical Simulation & Stress-Testing</title>
+    <meta name="description"
+        content="Generative AI system for multimodal synthetic patient avatars grounded in medical literature and disease models for clinical training and diagnostic algorithm evaluation.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=2.6.2">
+</head>
+
+<body class="light-theme">
+    <!-- View 1: Clinical Authentication Entry Portal (shown when not logged in) -->
+    <div id="view-auth-portal" class="auth-portal-wrapper">
+        <div class="card glass-card auth-portal-card">
+            <div class="auth-branding">
+                <span class="logo-icon">🧬</span>
+                <h1>RareAvatar</h1>
+
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="auth-role-tabs">
+                <button type="button" id="login-tab-trainee" class="auth-role-btn active">
+                    <span>👤</span> Clinical Trainee Portal
+                </button>
+                <button type="button" id="login-tab-supervisor" class="auth-role-btn">
+                    <span>🎓</span> Supervisor / Evaluator Portal
+                </button>
+            </div>
+
+            <!-- Error message container -->
+            <div id="login-error-alert" class="auth-error-alert hidden"></div>
+
+            <!-- Form 1: Trainee Login -->
+            <form id="form-login-trainee" class="auth-form">
+
+                <div class="form-group" style="margin-top: 14px;">
+                    <label for="input-trainee-email">Trainee Institutional Email (Must contain Trainee ID &
+                        @ggmail.com):</label>
+                    <input type="email" id="input-trainee-email" class="form-input"
+                        placeholder="e.g. TR-8041@ggmail.com" value="TR-8041@ggmail.com" required>
+                    <small class="text-muted">Format requirement: <code>&lt;trainee_id&gt;@ggmail.com</code></small>
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="input-trainee-password">Password:</label>
+                    <input type="password" id="input-trainee-password" class="form-input"
+                        placeholder="Enter trainee password" value="trainee123">
+                </div>
+
+                <button type="submit" id="btn-trainee-login-submit" class="btn btn-primary btn-login-submit"
+                    style="width: 100%; margin-top: 18px;">
+                    <span></span> Sign In to Trainee Diagnostic Clinic
+                </button>
+            </form>
+
+            <!-- Form 2: Supervisor Login -->
+            <form id="form-login-supervisor" class="auth-form hidden">
+
+                <div class="form-group" style="margin-top: 14px;">
+                    <label for="input-supervisor-email">Supervisor / Evaluator Email (Must contain Supervisor ID &
+                        @ggmail.com):</label>
+                    <input type="email" id="input-supervisor-email" class="form-input"
+                        placeholder="e.g. SUP-001@ggmail.com" value="SUP-001@ggmail.com" required>
+                    <small class="text-muted">Format requirement: <code>&lt;supervisor_id&gt;@ggmail.com</code></small>
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="input-supervisor-password">Password:</label>
+                    <input type="password" id="input-supervisor-password" class="form-input"
+                        placeholder="Enter supervisor password" value="supervisor123">
+                </div>
+
+                <button type="submit" id="btn-supervisor-login-submit" class="btn btn-primary btn-login-submit"
+                    style="width: 100%; margin-top: 18px; background: linear-gradient(135deg, #475569 0%, #334155 100%);">
+                    <span></span> Sign In to Supervisor Command Hub
+                </button>
+            </form>
+
+            <div class="auth-footer-notice text-muted"
+                style="text-align: center; font-size: 0.75rem; margin-top: 12px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- View 2: Main Application Shell (shown when authenticated) -->
+    <div id="view-app-shell" class="app-shell-wrapper hidden">
+        <!-- Top Header Bar -->
+        <header class="app-header">
+            <div class="header-branding">
+                <div class="logo-badge">
+                    <span class="logo-icon">🧬</span>
+                    <div class="logo-text">
+                        <h1>RareAvatar</h1>
+                        <p class="subtitle">Synthetic Rare-Disease Patient Avatars for Clinical Training & Decision
+                            Support</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-center-controls">
+                <div class="avatar-selector-box">
+                    <label for="select-patient">Active Avatar:</label>
+                    <select id="select-patient" class="patient-dropdown">
+                        <option value="" disabled selected>Loading synthetic avatars...</option>
+                    </select>
+                </div>
+                <button id="btn-create-avatar-modal" class="btn btn-outline-cyan">
+                    <span>➕</span> Generate New Avatar
+                </button>
+            </div>
+
+            <div class="header-badges">
+                <div class="status-indicator">
+                    <span class="indicator-dot live-pulse"></span>
+                    <span class="indicator-label" id="simulation-clock-label">Sim Month: 0</span>
+                </div>
+                <div id="header-user-badge" class="badge badge-cyan">
+                    <span>👤 Trainee: <strong>Loading...</strong></span>
+                </div>
+                <button id="btn-header-logout" class="btn btn-sm btn-outline-cyan"
+                    title="Log out and return to role login portal">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Layout with Left Sidebar Menu and Right Content Area -->
+        <div class="app-layout-container">
+            <!-- Left Sidebar Navigation Menu -->
+            <aside class="app-sidebar" id="app-sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">Clinical Menu</span>
+                    <button type="button" id="btn-toggle-sidebar" class="sidebar-collapse-btn"
+                        title="Toggle Sidebar Width">◀</button>
+                </div>
+
+                <nav class="sidebar-nav-menu">
+                    <!-- Category: Clinical Practice -->
+                    <div class="nav-section-label">Clinical Practice</div>
+                    <button class="nav-tab active" data-tab="workspace" title="Patient Workspace">
+                        <span class="tab-icon">👤</span>
+                        <span class="tab-text">Patient Workspace</span>
+                    </button>
+                    <button class="nav-tab" data-tab="consultation" title="Interactive Consultation">
+                        <span class="tab-icon">💬</span>
+                        <span class="tab-text">Interactive Consultation</span>
+                    </button>
+                    <button class="nav-tab" data-tab="multimodal" title="Multimodal Data & Orders">
+                        <span class="tab-icon">🔬</span>
+                        <span class="tab-text">Multimodal Data & Orders</span>
+                    </button>
+                    <button class="nav-tab" data-tab="progression" title="Disease Progression & Scenarios">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-text">Disease Progression</span>
+                    </button>
+
+                    <!-- Category: Advanced Clinical Labs -->
+                    <div class="nav-section-label">Advanced Simulation</div>
+                    <button class="nav-tab" data-tab="what-if" title="Clinical What-If Lab">
+                        <span class="tab-icon">🔀</span>
+                        <span class="tab-text">What-If Lab</span>
+                    </button>
+                    <button class="nav-tab" data-tab="mystery" title="Clinical Mystery Mode">
+                        <span class="tab-icon">🕵️</span>
+                        <span class="tab-text">Mystery Mode</span>
+                    </button>
+                    <button class="nav-tab" data-tab="evidence" title="Evidence Explorer">
+                        <span class="tab-icon">📚</span>
+                        <span class="tab-text">Evidence Explorer</span>
+                    </button>
+
+                    <!-- Category: Trainee Diagnostic Challenge -->
+                    <div class="nav-section-label" data-role="trainee-only">Trainee Challenge</div>
+                    <button class="nav-tab" data-tab="trainee-submission" data-role="trainee-only"
+                        title="Diagnostic Formulation & Instant Scorecard">
+                        <span class="tab-icon">📋</span>
+                        <span class="tab-text">Diagnostic Submission</span>
+                    </button>
+
+                    <!-- Category: Supervisor & AI Arena -->
+                    <div class="nav-section-label" data-role="supervisor-only">Supervisor & AI Arena</div>
+                    <button class="nav-tab" data-tab="supervisor-oversight" data-role="supervisor-only"
+                        title="Trainee Performance Oversight">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-text">Trainee Oversight</span>
+                    </button>
+                    <button class="nav-tab" data-tab="arena" id="nav-tab-arena" data-role="supervisor-only"
+                        title="Diagnostic AI Adversarial Arena">
+                        <span class="tab-icon">⚡</span>
+                        <span class="tab-text">Adversarial Arena</span>
+                    </button>
+                    <button class="nav-tab" data-tab="population" data-role="supervisor-only"
+                        title="Synthetic Patient Population Lab">
+                        <span class="tab-icon">👥</span>
+                        <span class="tab-text">Population Lab</span>
+                    </button>
+                    <button class="nav-tab" data-tab="validation" data-role="supervisor-only"
+                        title="Consistency Guardian & Privacy">
+                        <span class="tab-icon">🛡️</span>
+                        <span class="tab-text">Consistency Guardian</span>
+                    </button>
+                </nav>
+
+                <!-- Sidebar Footer Status -->
+                <div class="sidebar-footer">
+                    <div class="sidebar-avatar-mini-status">
+                        <span class="dot-online"></span>
+                        <div class="mini-meta">
+                            <span class="mini-label">ACTIVE SESSION</span>
+                            <span class="mini-sub" id="sidebar-role-indicator">Clinical Workstation</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Application Layout Area -->
+            <div class="app-main-layout">
+                <!-- Main Application Container -->
+                <main class="main-content-area">
+                    <!-- Toast notifications -->
+                    <div id="toast-container" class="toast-container"></div>
+
+                    <!-- TAB 1: Patient Workspace -->
+                    <section id="tab-workspace" class="tab-panel active">
+                        <div class="workspace-grid">
+                            <!-- Patient Card -->
+                            <div class="card glass-card patient-identity-card">
+                                <div class="card-header">
+                                    <h3>Demographics & Genetic Profile</h3>
+                                    <span id="patient-id-badge" class="badge badge-mono">ID: Loading...</span>
+                                </div>
+                                <div class="patient-profile-body">
+                                    <div class="profile-avatar-graphic" id="avatar-graphic-icon">🧑‍⚕️</div>
+                                    <div class="profile-details-grid">
+                                        <div class="detail-item">
+                                            <span class="label">Age:</span>
+                                            <span class="value" id="disp-age">—</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Sex:</span>
+                                            <span class="value" id="disp-sex">—</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Ethnicity:</span>
+                                            <span class="value" id="disp-ethnicity">—</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Simulated Month:</span>
+                                            <span class="value highlight-cyan" id="disp-sim-month">Month 0</span>
+                                        </div>
+                                        <div class="detail-item ground-truth-field">
+                                            <span class="label">Modeled Disease:</span>
+                                            <span class="value highlight-purple" id="disp-disease-name">Unlocked</span>
+                                        </div>
+                                        <div class="detail-item ground-truth-field">
+                                            <span class="label">OMIM & Orpha:</span>
+                                            <span class="value badge-mono" id="disp-omim-code">Unlocked</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="simulation-time-controls">
+                                    <h4>Simulation Controls</h4>
+                                    <div class="btn-group">
+                                        <button id="btn-advance-3m" class="btn btn-secondary">Advance +3 Months</button>
+                                        <button id="btn-advance-6m" class="btn btn-secondary">Advance +6 Months</button>
+                                        <button id="btn-advance-12m" class="btn btn-secondary">Advance +12
+                                            Months</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chief Complaint & Encounter History -->
+                            <div class="card glass-card encounter-history-card">
+                                <div class="card-header">
+                                    <h3>Longitudinal Clinical Timeline</h3>
+                                    <span class="badge badge-info">Chronological Encounter Notes</span>
+                                </div>
+                                <div class="timeline-container" id="clinical-notes-timeline">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Active Symptoms & Clinical Signs -->
+                            <div class="card glass-card symptoms-card">
+                                <div class="card-header">
+                                    <h3>Clinical Manifestations & Phenotype</h3>
+                                    <span class="badge badge-warning" id="revealed-count-badge">Revealed: 0 / 0</span>
+                                </div>
+                                <div class="symptoms-list" id="symptoms-display-list">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 2: Interactive Consultation -->
+                    <section id="tab-consultation" class="tab-panel">
+                        <div class="consultation-layout">
+                            <div class="chat-main-card card glass-card">
+                                <div class="card-header consultation-header">
+                                    <div class="consultation-title-box">
+                                        <h3>Interactive Patient Interview</h3>
+                                        <p class="card-subtext">The avatar answers strictly from its stored synthetic
+                                            state vector and pathophysiological parameters.</p>
+                                    </div>
+                                    <div class="consultation-status">
+                                        <span class="badge badge-success">Avatar State Grounded</span>
+                                    </div>
+                                </div>
+                                <div class="chat-messages-container" id="chat-messages-box">
+                                    <!-- Chat history inserted dynamically -->
+                                </div>
+                                <div class="chat-input-area">
+                                    <div class="quick-inquiry-chips">
+                                        <button type="button" class="chip-btn"
+                                            data-query="How many days are you having this problem?">Onset Duration
+                                            (Days)</button>
+                                        <button type="button" class="chip-btn"
+                                            data-query="Can you describe when your fatigue and symptoms first started?">Onset
+                                            of Symptoms</button>
+                                        <button type="button" class="chip-btn"
+                                            data-query="Have you noticed any tremor, changes in your writing, or slurred speech?">Tremor
+                                            & Speech</button>
+                                        <button type="button" class="chip-btn"
+                                            data-query="Do you have burning pain in your hands or feet, or trouble sweating?">Burning
+                                            Pain & Sweating</button>
+                                        <button type="button" class="chip-btn"
+                                            data-query="Does anyone in your family have a history of liver, kidney, or neurological disease?">Family
+                                            History</button>
+                                        <button type="button" class="chip-btn"
+                                            data-query="What medications or treatments are you currently taking?">Current
+                                            Medications</button>
+                                    </div>
+                                    <form id="form-consultation-chat" class="chat-input-form"
+                                        onsubmit="event.preventDefault(); return false;">
+                                        <input type="text" id="input-chat-query"
+                                            placeholder="Ask the patient a clinical question (e.g. 'How many days are you having this problem?')..."
+                                            autocomplete="off">
+                                        <button type="button" id="btn-send-query" class="btn btn-primary">
+                                            <span>Inquire</span> ➔
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Order Investigations Sidebar -->
+                            <div class="investigation-order-card card glass-card">
+                                <div class="card-header">
+                                    <h3>Diagnostic Order Workstation</h3>
+                                    <span class="badge badge-cyan">Order Tests</span>
+                                </div>
+                                <p class="order-notice">In accordance with clinical training protocols, diagnostic test
+                                    results are held unrevealed until explicitly ordered by the clinician.</p>
+                                <div class="order-catalog-list" id="order-catalog-box">
+                                    <!-- Catalog items inserted dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 3: Multimodal Data & Imaging -->
+                    <section id="tab-multimodal" class="tab-panel">
+                        <div class="multimodal-grid">
+                            <!-- Laboratory Trajectory Panel -->
+                            <div class="card glass-card lab-panel-card">
+                                <div class="card-header">
+                                    <h3>Laboratory Trajectories & Analytical Uncertainty</h3>
+                                    <span class="badge badge-info">Biomarkers & 95% Confidence Bounds</span>
+                                </div>
+                                <div class="lab-table-container">
+                                    <table class="clinical-data-table" id="table-lab-results">
+                                        <thead>
+                                            <tr>
+                                                <th>Test Name</th>
+                                                <th>Observed Value</th>
+                                                <th>Unit</th>
+                                                <th>Reference Range</th>
+                                                <th>95% CI Interval</th>
+                                                <th>Status</th>
+                                                <th>Evidence Level</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lab-results-tbody">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="canvas-chart-box">
+                                    <h4>Biomarker Trajectory & Aleatoric Variance</h4>
+                                    <div id="chart-biomarker-container" class="chart-wrapper">
+                                        <canvas id="canvas-biomarker-plot" width="700" height="240"></canvas>
+                                    </div>
+                                    <p class="chart-caption">Continuous estimated biomarker progression curve with
+                                        calibrated 95% empirical prediction bands.</p>
+                                </div>
+                            </div>
+
+                            <!-- Imaging Studies & Parametric Visual Map -->
+                            <div class="card glass-card imaging-panel-card">
+                                <div class="card-header">
+                                    <h3>Multimodal Imaging Findings & Parametric Visual Maps</h3>
+                                    <span class="badge badge-purple">Structured Radiology Report</span>
+                                </div>
+                                <div class="imaging-selector-tabs" id="imaging-study-tabs">
+                                    <!-- Tab buttons per imaging study -->
+                                </div>
+                                <div class="imaging-detail-container" id="imaging-study-details">
+                                    <!-- Populated dynamically -->
+                                </div>
+                                <div class="imaging-visualization-container">
+                                    <div class="imaging-viz-header">
+                                        <h4>Parametric Visual Schematic Slice (Calibrated Organ Geometry)</h4>
+                                        <span class="badge badge-outline-warning">Parametric Synthetic
+                                            Representation</span>
+                                    </div>
+                                    <div class="svg-slice-viewport" id="svg-slice-viewport">
+                                        <!-- SVG slice rendered by imagingRenderer.js -->
+                                    </div>
+                                    <p class="viz-disclaimer">
+                                        <strong>Note:</strong> The visualization above is a calibrated parametric
+                                        schematic generated from the quantitative feature vectors and z-scores. Full 3D
+                                        volumetric DICOM diffusion requires dedicated offline GPU compute nodes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 4: Disease Progression & Treatment Scenarios -->
+                    <section id="tab-progression" class="tab-panel">
+                        <div class="progression-layout">
+                            <div class="card glass-card progression-control-card">
+                                <div class="card-header">
+                                    <h3>Counterfactual Treatment Scenarios</h3>
+                                    <span class="badge badge-cyan">Simulation Engine</span>
+                                </div>
+                                <p class="section-intro">
+                                    Compare hypothetical patient trajectories under alternative clinical decision
+                                    pathways grounded in published natural history registries and clinical trials.
+                                </p>
+                                <div class="scenarios-selector-list" id="scenarios-list-box">
+                                    <!-- Scenario cards dynamically inserted -->
+                                </div>
+                            </div>
+
+                            <div class="card glass-card progression-chart-card">
+                                <div class="card-header">
+                                    <h3>Comparative Longitudinal Response Curves</h3>
+                                    <span class="badge badge-mono">Time Horizon: 0 to 12 Months</span>
+                                </div>
+                                <div class="trajectory-chart-wrapper">
+                                    <canvas id="canvas-scenario-trajectory" width="800" height="340"></canvas>
+                                </div>
+                                <div class="trajectory-legend" id="scenario-trajectory-legend">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 5: Uncertainty & Evidence View -->
+                    <section id="tab-uncertainty" class="tab-panel">
+                        <div class="uncertainty-evidence-grid">
+                            <!-- Uncertainty Framework -->
+                            <div class="card glass-card uncertainty-card">
+                                <div class="card-header">
+                                    <h3>Epistemic & Aleatoric Uncertainty Architecture</h3>
+                                    <span class="badge badge-mono">Formal Decoupling</span>
+                                </div>
+                                <div class="uncertainty-explanation-boxes">
+                                    <div class="uncertainty-box aleatoric-box">
+                                        <h4>🎲 Aleatoric Uncertainty (Biological Variance)</h4>
+                                        <p>Represents intrinsic natural patient-to-patient heterogeneity, diurnal
+                                            physiological fluctuations, and analytical instrument precision tolerances.
+                                        </p>
+                                        <ul>
+                                            <li>Reported via explicit 95% confidence intervals around continuous
+                                                biomarker levels.</li>
+                                            <li>Derived from empirical multi-center cohort variance parameters in
+                                                published registries.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="uncertainty-box epistemic-box">
+                                        <h4>📚 Epistemic Uncertainty (Evidence Density)</h4>
+                                        <p>Represents boundaries in medical knowledge, sparse clinical literature for
+                                            rare phenotypes, and degrees of consensus among clinical guidelines.</p>
+                                        <ul>
+                                            <li>Scored quantitatively (0.0 to 1.0) based on peer-reviewed evidence
+                                                level: Level A (guidelines/RCTs), Level B (cohort registries), Level C
+                                                (case series).</li>
+                                            <li>Displays explicit caveats when evidence is scarce or conflicting.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="active-uncertainty-breakdown">
+                                    <h4>Active Avatar Parameter Uncertainty Scores</h4>
+                                    <div id="uncertainty-scores-list" class="scores-list">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Medical Literature Attribution Catalog -->
+                            <div class="card glass-card literature-card">
+                                <div class="card-header">
+                                    <h3>Peer-Reviewed Medical Literature Evidence Base</h3>
+                                    <span class="badge badge-success">PubMed & Guideline Grounding</span>
+                                </div>
+                                <div class="literature-search-bar">
+                                    <input type="text" id="input-lit-search"
+                                        placeholder="Search evidence base by keyword, author, or PMID..."
+                                        autocomplete="off">
+                                </div>
+                                <div class="literature-articles-list" id="literature-articles-box">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 6: Consistency & Privacy Validation -->
+                    <section id="tab-validation" class="tab-panel">
+                        <div class="validation-layout">
+                            <!-- Guardian Verdict Banner -->
+                            <div id="guardian-verdict-banner" class="guardian-banner card glass-card"
+                                style="padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; border-left: 5px solid var(--accent-emerald);">
+                                <div>
+                                    <div
+                                        style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); font-weight: 600;">
+                                        Clinical Consistency Guardian Verdict
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                                        <span id="guardian-verdict-badge" class="badge badge-success"
+                                            style="font-size: 1rem; padding: 6px 14px;">VERIFIED CONSISTENT</span>
+                                    </div>
+                                    <p id="guardian-verdict-desc"
+                                        style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px;">
+                                        All physiological, cross-modal, temporal, treatment-model, and
+                                        evidence-grounding constraints verified against peer-reviewed clinical
+                                        guidelines.
+                                    </p>
+                                </div>
+                                <button id="btn-re-run-audit" class="btn btn-primary btn-sm">
+                                    <span>🛡️</span> Re-Run Full Guardian Audit
+                                </button>
+                            </div>
+
+                            <!-- 5 Guardian Category Summary Chips -->
+                            <div class="guardian-categories-grid"
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                                <div id="cat-chip-physio" class="card glass-card cat-chip-card"
+                                    style="padding: 12px; border-top: 3px solid #64748b;">
+                                    <span class="cat-chip-title">🫀 Physiological</span>
+                                    <div class="cat-chip-stats"><span class="badge badge-mono">Evaluating...</span>
+                                    </div>
+                                </div>
+                                <div id="cat-chip-crossmodal" class="card glass-card cat-chip-card"
+                                    style="padding: 12px; border-top: 3px solid #7c3aed;">
+                                    <span class="cat-chip-title">🧬 Cross-Modal</span>
+                                    <div class="cat-chip-stats"><span class="badge badge-mono">Evaluating...</span>
+                                    </div>
+                                </div>
+                                <div id="cat-chip-temporal" class="card glass-card cat-chip-card"
+                                    style="padding: 12px; border-top: 3px solid #10b981;">
+                                    <span class="cat-chip-title">⏱️ Temporal</span>
+                                    <div class="cat-chip-stats"><span class="badge badge-mono">Evaluating...</span>
+                                    </div>
+                                </div>
+                                <div id="cat-chip-treatment" class="card glass-card cat-chip-card"
+                                    style="padding: 12px; border-top: 3px solid #f59e0b;">
+                                    <span class="cat-chip-title">💊 Treatment-Model</span>
+                                    <div class="cat-chip-stats"><span class="badge badge-mono">Evaluating...</span>
+                                    </div>
+                                </div>
+                                <div id="cat-chip-evidence" class="card glass-card cat-chip-card"
+                                    style="padding: 12px; border-top: 3px solid #475569;">
+                                    <span class="cat-chip-title">📖 Evidence-Grounding</span>
+                                    <div class="cat-chip-stats"><span class="badge badge-mono">Evaluating...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Overall Metrics Bar -->
+                            <div class="card glass-card validation-summary-card">
+                                <div class="validation-metrics-bar" id="validation-metrics-bar">
+                                    <div class="metric-tile">
+                                        <span class="metric-title">Rule Validation Status</span>
+                                        <span class="metric-val status-passed"
+                                            id="val-status-label">Evaluating...</span>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="metric-title">Checks Passed</span>
+                                        <span class="metric-val" id="val-checks-count">—</span>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="metric-title">Max Lit 4-Gram Overlap</span>
+                                        <span class="metric-val" id="val-ngram-overlap">—</span>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="metric-title">Nearest Reference Distance</span>
+                                        <span class="metric-val" id="val-ref-dist">—</span>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="metric-title">Privacy Risk Category</span>
+                                        <span class="metric-val status-passed" id="val-privacy-risk">—</span>
+                                    </div>
+                                </div>
+
+                                <div class="expert-disclaimer-alert">
+                                    <span class="alert-icon">⚠️</span>
+                                    <div class="alert-text">
+                                        <strong>Validation Framework Notice:</strong>
+                                        <p id="val-expert-note">Loading validation parameters...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 1. Clinical Consistency Guardian Results Table -->
+                            <div class="card glass-card" style="width: 100%;">
+                                <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+                                    <div>
+                                        <h4>5-Category Clinical Consistency Rule Audits</h4>
+                                        <span class="badge badge-info">Deterministic Pathophysiological Verifier</span>
+                                    </div>
+
+                                    <!-- Filter buttons -->
+                                    <div class="val-filters-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                        <button type="button" class="chip-btn val-cat-btn active" data-cat="all">All
+                                            (5 Categories)</button>
+                                        <button type="button" class="chip-btn val-cat-btn" data-cat="Physiological">🫀
+                                            Physio</button>
+                                        <button type="button" class="chip-btn val-cat-btn" data-cat="Cross-Modal">🧬
+                                            Cross-Modal</button>
+                                        <button type="button" class="chip-btn val-cat-btn" data-cat="Temporal">⏱️
+                                            Temporal</button>
+                                        <button type="button" class="chip-btn val-cat-btn" data-cat="Treatment-Model">💊
+                                            Treatment</button>
+                                        <button type="button" class="chip-btn val-cat-btn"
+                                            data-cat="Evidence-Grounding">📖 Evidence</button>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive" style="padding: 12px 16px;">
+                                    <table class="rules-audit-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Rule & ID</th>
+                                                <th>Category</th>
+                                                <th>Expected Constraint</th>
+                                                <th>Observed Value</th>
+                                                <th>Status</th>
+                                                <th>Guideline Source</th>
+                                                <th>Suggested Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clinical-rules-tbody">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 2. Privacy & Anti-Memorization Results Card (Full-Width Stacked) -->
+                            <div class="card glass-card" style="width: 100%;">
+                                <div class="card-header">
+                                    <div>
+                                        <h4>Anti-Memorization & Privacy Audit</h4>
+                                        <p class="card-subtext">Verifies avatar avoids verbatim case report memorization
+                                            & human patient cloning</p>
+                                    </div>
+                                    <span class="badge badge-purple">Privacy Safeguards</span>
+                                </div>
+                                <div class="privacy-checks-box" id="privacy-checks-box">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 7: Diagnostic AI Adversarial Arena -->
+                    <section id="tab-arena" class="tab-panel">
+                        <div class="arena-header-banner">
+                            <div class="arena-title-group">
+                                <h2>Diagnostic AI Adversarial Arena <span class="tag-version">Automated Failure
+                                        Discovery</span></h2>
+                                <p class="subtitle" id="arena-capabilities-summary">
+                                    Automated search for failure modes, prediction instability, and diagnostic
+                                    brittleness across rare-disease synthetic patient avatars.
+                                </p>
+                            </div>
+                            <div class="arena-subtabs-nav">
+                                <button class="btn btn-sm arena-subtab-btn active" data-subtab="suite">⚡ Arena Batch
+                                    Discovery</button>
+                                <button class="btn btn-sm arena-subtab-btn" data-subtab="sandbox">🔬 Single Avatar
+                                    Sandbox</button>
+                                <button class="btn btn-sm arena-subtab-btn" data-subtab="history">📜 Experiment
+                                    History</button>
+                                <button class="btn btn-sm arena-subtab-btn" data-subtab="breaking-point">🎯 Breaking
+                                    Point Finder</button>
+                            </div>
+                        </div>
+
+                        <!-- SUBPANEL 1: Arena Automated Batch Discovery Suite -->
+                        <div id="panel-arena-suite" class="arena-panel">
+                            <!-- Experiment Configuration Card -->
+                            <div class="card glass-card arena-config-card">
+                                <div class="card-header">
+                                    <h3>Experiment Configuration & Stress-Test Parameters</h3>
+                                    <span class="badge badge-warning">Adversarial Evaluation Matrix</span>
+                                </div>
+
+                                <div class="arena-config-grid">
+                                    <div class="form-group">
+                                        <label for="select-arena-disease">Target Rare Disease Cohort:</label>
+                                        <select id="select-arena-disease" class="form-select">
+                                            <option value="all" selected>All Three Supported Rare Diseases (Comparative
+                                                Arena)</option>
+                                            <option value="wilson_disease">Wilson Disease (ATP7B, OMIM #277900)</option>
+                                            <option value="fabry_disease">Fabry Disease (GLA, OMIM #301500)</option>
+                                            <option value="gaucher_disease">Gaucher Disease Type 1 (GBA1, OMIM #230800)
+                                            </option>
+                                        </select>
+                                        <small>Select all diseases for cross-disease benchmark or a specific
+                                            condition.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-arena-model">Diagnostic Model under Evaluation:</label>
+                                        <select id="select-arena-model" class="form-select">
+                                            <option value="reference_baseline" selected>Reference Guideline Classifier
+                                                (Baseline Rule-Based)</option>
+                                            <option value="mock_fragile">Mock Fragile Diagnostic AI (Decision Boundary
+                                                Overfitting)</option>
+                                            <option value="mock_robust">Mock Robust Diagnostic AI (Multimodal Bayesian
+                                                Ensemble)</option>
+                                            <option value="external_http">External HTTP Diagnostic API (REST Endpoint)
+                                            </option>
+                                        </select>
+                                        <small>Select baseline guideline model, mock models for demonstration, or
+                                            external API.</small>
+                                    </div>
+
+                                    <div class="form-group" id="box-arena-external-url" class="hidden">
+                                        <label for="input-arena-external-url">External Model Endpoint URL:</label>
+                                        <input type="url" id="input-arena-external-url"
+                                            placeholder="http://localhost:8000/api/diagnostic-eval/submit-external"
+                                            class="form-input">
+                                        <small>Receives blinded demographics, symptoms, labs, and imaging via
+                                            POST.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-arena-strategy">Failure-Discovery Strategy:</label>
+                                        <select id="select-arena-strategy" class="form-select">
+                                            <option value="sweep" selected>Controlled Parameter Sweep (Configured
+                                                Ranges)</option>
+                                            <option value="adversarial_search">Borderline Adversarial Search (Targeted
+                                                Threshold Probing)</option>
+                                            <option value="repeated_variants">Repeated Stochastic Variations (Seed
+                                                Variance & Stability)</option>
+                                        </select>
+                                        <small>Adaptive strategy probes clinical decision thresholds without violating
+                                            disease models.</small>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="input-arena-cases">Cases per Disease (1 - 20):</label>
+                                            <input type="number" id="input-arena-cases" min="1" max="20" value="4"
+                                                class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-arena-seed">Reproducibility Seed:</label>
+                                            <div class="seed-input-group">
+                                                <input type="number" id="input-arena-seed" value="42"
+                                                    class="form-input">
+                                                <button type="button" id="btn-arena-random-seed"
+                                                    class="btn btn-secondary btn-sm"
+                                                    title="Generate Random Seed">🎲</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Perturbation Sliders -->
+                                    <div class="form-group">
+                                        <label for="input-arena-noise">Gaussian Measurement Noise (σ): <span
+                                                id="label-arena-noise-val" class="highlight-cyan">0.15</span></label>
+                                        <input type="range" id="input-arena-noise" min="0.0" max="0.45" step="0.05"
+                                            value="0.15">
+                                        <small>Relative noise added to laboratory biomarkers and symptom
+                                            severity.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-arena-missing">Missing Lab Dropout Rate: <span
+                                                id="label-arena-missing-val" class="highlight-cyan">25%</span></label>
+                                        <input type="range" id="input-arena-missing" min="0.0" max="0.60" step="0.05"
+                                            value="0.25">
+                                        <small>Simulates incomplete diagnostic workup by withholding test
+                                            observations.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-arena-age-shift">Atypical Age Shift: <span
+                                                id="label-arena-age-val" class="highlight-cyan">+0 yrs</span></label>
+                                        <input type="range" id="input-arena-age-shift" min="-15" max="15" step="5"
+                                            value="0">
+                                        <small>Tests sensitivity to atypical pediatric or late adult onset
+                                            windows.</small>
+                                    </div>
+
+                                    <div class="form-group-checkbox">
+                                        <label>
+                                            <input type="checkbox" id="check-arena-infection">
+                                            Inject Acute Intercurrent Infection Confounder (CRP 45-110 mg/L, WBC
+                                            14.5-19.8 x10^3/uL)
+                                        </label>
+                                        <small>Tests specificity when inflammatory markers mimic systemic
+                                            sepsis.</small>
+                                    </div>
+                                </div>
+
+                                <div class="arena-launch-row">
+                                    <button id="btn-run-arena" class="btn btn-primary btn-lg">
+                                        <span>⚡</span> Launch Adversarial Arena Experiment
+                                    </button>
+                                    <div id="arena-spinner" class="spinner-inline hidden">
+                                        <span class="live-pulse"></span> Simulating synthetic cohort & evaluating
+                                        diagnostic models...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Experiment Results Container (revealed on run) -->
+                            <div id="arena-results-container" class="arena-results-box hidden">
+                                <!-- Status & Cohort Bar -->
+                                <div class="arena-status-bar glass-card">
+                                    <div class="status-meta">
+                                        <span class="meta-item">Experiment: <strong id="arena-exp-id-badge"
+                                                class="badge badge-mono">—</strong></span>
+                                        <span class="meta-item">Evaluated Model: <strong id="arena-exp-model-badge"
+                                                class="badge badge-info">—</strong></span>
+                                        <span class="meta-item">Timestamp: <strong id="arena-exp-time-badge"
+                                                class="text-muted">—</strong></span>
+                                    </div>
+                                    <div class="cohort-chips">
+                                        <span class="cohort-chip">Attempted: <strong
+                                                id="chip-cases-attempted">0</strong></span>
+                                        <span class="cohort-chip chip-valid">Valid: <strong
+                                                id="chip-cases-valid">0</strong></span>
+                                        <span class="cohort-chip chip-rejected">Rejected (Violations): <strong
+                                                id="chip-cases-rejected">0</strong></span>
+                                        <span class="cohort-chip chip-uneval">Unevaluable: <strong
+                                                id="chip-cases-unevaluable">0</strong></span>
+                                    </div>
+                                </div>
+
+                                <!-- Performance Overview KPI Grid -->
+                                <div class="arena-kpi-grid">
+                                    <div class="card glass-card kpi-card">
+                                        <span class="kpi-label">Baseline Accuracy</span>
+                                        <div class="kpi-val highlight-cyan" id="kpi-baseline-acc">—</div>
+                                        <span class="kpi-sub">Unperturbed reference patients</span>
+                                    </div>
+
+                                    <div class="card glass-card kpi-card">
+                                        <span class="kpi-label">Perturbed Accuracy</span>
+                                        <div class="kpi-val highlight-purple" id="kpi-perturbed-acc">—</div>
+                                        <span class="kpi-sub">Under adversarial & noise stress</span>
+                                    </div>
+
+                                    <div class="card glass-card kpi-card">
+                                        <span class="kpi-label">Accuracy Degradation</span>
+                                        <div class="kpi-val" id="kpi-accuracy-degradation">—</div>
+                                        <span class="kpi-sub">Baseline vs. perturbed drop</span>
+                                    </div>
+
+                                    <div class="card glass-card kpi-card">
+                                        <span class="kpi-label">Prediction Instability</span>
+                                        <div class="kpi-val text-amber" id="kpi-instability-rate">—</div>
+                                        <span class="kpi-sub">Predicted diagnosis flipped</span>
+                                    </div>
+
+                                    <div class="card glass-card kpi-card">
+                                        <span class="kpi-label">Discovered Failures</span>
+                                        <div class="kpi-val text-crimson" id="kpi-failures-discovered">—</div>
+                                        <span class="kpi-sub">Total vulnerability instances</span>
+                                    </div>
+                                </div>
+
+                                <!-- Failure Breakdown Chips -->
+                                <div class="failure-breakdown-bar glass-card">
+                                    <span class="breakdown-title">Failure Modes Discovered:</span>
+                                    <div class="breakdown-chips-row">
+                                        <div class="breakdown-chip chip-danger">
+                                            <span>Incorrect Prediction:</span>
+                                            <strong id="cnt-fail-incorrect">0</strong>
+                                        </div>
+                                        <div class="breakdown-chip chip-warning">
+                                            <span>Prediction Instability:</span>
+                                            <strong id="cnt-fail-instability">0</strong>
+                                        </div>
+                                        <div class="breakdown-chip chip-warning">
+                                            <span>Confidence Collapse:</span>
+                                            <strong id="cnt-fail-collapse">0</strong>
+                                        </div>
+                                        <div class="breakdown-chip chip-danger">
+                                            <span>Constraint Violations:</span>
+                                            <strong id="cnt-fail-constraint">0</strong>
+                                        </div>
+                                        <div class="breakdown-chip chip-neutral">
+                                            <span>Unevaluable Cases:</span>
+                                            <strong id="cnt-fail-unevaluable">0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Comparative Matrices (Disease and Perturbation) -->
+                                <div class="arena-matrix-grid">
+                                    <div class="card glass-card matrix-card">
+                                        <div class="card-header">
+                                            <h3>Performance by Rare Disease</h3>
+                                            <span class="badge badge-info">Disease Breakdown</span>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="arena-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Disease Model</th>
+                                                        <th>Attempted</th>
+                                                        <th>Valid</th>
+                                                        <th>Baseline Acc</th>
+                                                        <th>Perturbed Acc</th>
+                                                        <th>Degradation</th>
+                                                        <th>Failures</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-disease-matrix">
+                                                    <!-- Rendered by JS -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="card glass-card matrix-card">
+                                        <div class="card-header">
+                                            <h3>Vulnerability by Perturbation Category</h3>
+                                            <span class="badge badge-warning">Perturbation Sensitivity</span>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="arena-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Perturbation Category</th>
+                                                        <th>Evaluated</th>
+                                                        <th>Correct</th>
+                                                        <th>Failures</th>
+                                                        <th>Failure Rate</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-perturbation-matrix">
+                                                    <!-- Rendered by JS -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Prioritized Adversarial Cases Table -->
+                                <div class="card glass-card arena-cases-card">
+                                    <div class="card-header">
+                                        <h3>Prioritized Adversarial Failure Cases & Stress-Test Scenarios</h3>
+                                        <div class="table-actions-group">
+                                            <select id="filter-arena-disease" class="form-select-sm">
+                                                <option value="all">All Diseases</option>
+                                                <option value="wilson_disease">Wilson Disease</option>
+                                                <option value="fabry_disease">Fabry Disease</option>
+                                                <option value="gaucher_disease">Gaucher Disease Type 1</option>
+                                            </select>
+                                            <select id="filter-arena-failure" class="form-select-sm">
+                                                <option value="all">All Cases</option>
+                                                <option value="failures_only" selected>Failures Only</option>
+                                                <option value="instability_only">Instability Only</option>
+                                                <option value="rejected_only">Constraint Violations Only</option>
+                                            </select>
+                                            <input type="text" id="input-arena-search"
+                                                placeholder="Search case ID, disease, delta..." class="form-input-sm">
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="arena-table arena-cases-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Case ID</th>
+                                                    <th>Modeled Disease</th>
+                                                    <th>Baseline Pred</th>
+                                                    <th>Perturbed Pred</th>
+                                                    <th>Ground Truth</th>
+                                                    <th>Failure Category</th>
+                                                    <th>Perturbations Applied</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-arena-cases">
+                                                <!-- Rendered by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Export Bar -->
+                                    <div class="arena-export-bar">
+                                        <span class="export-label">Export Benchmark Artifacts:</span>
+                                        <div class="btn-group">
+                                            <button id="btn-arena-export-json" class="btn btn-outline-cyan btn-sm">
+                                                📥 Download Benchmark JSON
+                                            </button>
+                                            <button id="btn-arena-export-csv" class="btn btn-outline-cyan btn-sm">
+                                                📊 Download Case-Level CSV
+                                            </button>
+                                            <button id="btn-arena-copy-config" class="btn btn-outline-purple btn-sm">
+                                                📋 Copy Reproducibility Config
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBPANEL 2: Single Avatar Sandbox (Manual single-case stress-testing) -->
+                        <div id="panel-arena-sandbox" class="arena-panel hidden">
+                            <div class="benchmark-grid">
+                                <div class="card glass-card benchmark-config-card">
+                                    <div class="card-header">
+                                        <h3>Single Avatar Controlled Perturbation Generator</h3>
+                                        <span class="badge badge-warning">Adversarial & Edge-Case Synthesis</span>
+                                    </div>
+                                    <p class="benchmark-desc">
+                                        Synthesizes reproducible, controlled variations of the active avatar to probe
+                                        failure modes and diagnostic robustness interactively.
+                                    </p>
+                                    <form id="form-perturbation" class="perturbation-form">
+                                        <div class="form-group">
+                                            <label for="input-noise-sigma">Gaussian Measurement Noise (σ): <span
+                                                    id="label-noise-val" class="highlight-cyan">0.10</span></label>
+                                            <input type="range" id="input-noise-sigma" min="0.0" max="0.5" step="0.05"
+                                                value="0.10">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-missing-rate">Missing Lab Workup Rate: <span
+                                                    id="label-missing-val" class="highlight-cyan">20%</span></label>
+                                            <input type="range" id="input-missing-rate" min="0.0" max="0.7" step="0.1"
+                                                value="0.20">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-age-shift">Atypical Age Shift (Years): <span
+                                                    id="label-age-shift-val" class="highlight-cyan">+0
+                                                    yrs</span></label>
+                                            <input type="range" id="input-age-shift" min="-15" max="15" step="5"
+                                                value="0">
+                                        </div>
+                                        <div class="form-group-checkbox">
+                                            <label>
+                                                <input type="checkbox" id="check-inject-infection">
+                                                Inject Confounding Acute Infection (Elevated CRP/WBC)
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-perturbation-seed">Reproducibility Seed:</label>
+                                            <input type="number" id="input-perturbation-seed" value="42"
+                                                class="form-input-sm">
+                                        </div>
+                                        <div class="form-actions">
+                                            <button type="button" id="btn-create-test-case" class="btn btn-primary">
+                                                Generate Perturbed Test Case
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="card glass-card benchmark-eval-card">
+                                    <div class="card-header">
+                                        <h3>Test Case Specification & Diagnostic Submission</h3>
+                                        <span id="active-test-case-badge" class="badge badge-mono">No Test Case
+                                            Active</span>
+                                    </div>
+                                    <div class="test-case-inspect-box">
+                                        <div class="test-case-subtabs">
+                                            <button class="tc-tab-btn active" data-view="blinded">Blinded Inputs
+                                                (Algorithm Feed)</button>
+                                            <button class="tc-tab-btn" data-view="groundtruth">Ground Truth (Held
+                                                Reference)</button>
+                                        </div>
+                                        <pre class="json-viewer"
+                                            id="json-testcase-viewer">// Generate a perturbed test case to inspect blinded inputs</pre>
+                                    </div>
+                                    <div class="benchmark-execution-controls">
+                                        <h4>Evaluate Against Clinical Models</h4>
+                                        <div class="eval-btn-row">
+                                            <button id="btn-eval-reference-model" class="btn btn-outline-cyan" disabled>
+                                                Run Built-in Reference Clinical Guideline Classifier
+                                            </button>
+                                        </div>
+                                        <div class="external-api-contract-notice">
+                                            <p><strong>External Diagnostic API Integration Contract:</strong> POST your
+                                                algorithm's predictions to
+                                                <code>/api/diagnostic-eval/submit-external</code> with schema
+                                                <code>{test_case_id, predicted_disease_id, confidence_score, differential_diagnoses}</code>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card glass-card benchmark-history-card">
+                                    <div class="card-header">
+                                        <h3>Evaluation Results & Robustness History</h3>
+                                        <span class="badge badge-info">Evaluation Metrics</span>
+                                    </div>
+                                    <div class="eval-history-table-box">
+                                        <table class="benchmark-results-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Test Case ID</th>
+                                                    <th>Algorithm</th>
+                                                    <th>Ground Truth</th>
+                                                    <th>Prediction</th>
+                                                    <th>Confidence</th>
+                                                    <th>Top-1 Match</th>
+                                                    <th>Robustness Score</th>
+                                                    <th>Perturbation Config</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eval-history-tbody">
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted">No test cases
+                                                        evaluated yet in this session.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBPANEL 3: Experiment History & Reproducibility Registry -->
+                        <div id="panel-arena-history" class="arena-panel hidden">
+                            <div class="card glass-card arena-history-full-card">
+                                <div class="card-header">
+                                    <h3>Historical Adversarial Arena Experiments</h3>
+                                    <span class="badge badge-info">Reproducibility Registry</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="arena-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Experiment ID</th>
+                                                <th>Created At</th>
+                                                <th>Cohort</th>
+                                                <th>Evaluated Model</th>
+                                                <th>Valid/Attempted</th>
+                                                <th>Perturbed Acc</th>
+                                                <th>Discovered Failures</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-arena-history">
+                                            <tr>
+                                                <td colspan="8" class="text-center text-muted">Loading experiment
+                                                    history...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBPANEL 4: Diagnostic AI Breaking Point Finder -->
+                        <div id="panel-arena-breaking-point" class="arena-panel hidden">
+                            <div class="card glass-card arena-config-card">
+                                <div class="card-header">
+                                    <h3>Diagnostic AI Breaking Point Finder</h3>
+                                    <span class="badge badge-danger">Minimal Adversarial Perturbation Search</span>
+                                </div>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+                                    Progressively searches for the smallest valid perturbation delta (&Delta;) that
+                                    flips the model's diagnostic classification or collapses diagnostic confidence below
+                                    50%.
+                                </p>
+
+                                <div class="arena-config-grid" style="margin-top: 16px;">
+                                    <div class="form-group">
+                                        <label for="select-bp-disease">Target Rare Disease:</label>
+                                        <select id="select-bp-disease" class="form-select">
+                                            <option value="wilson_disease" selected>Wilson Disease (ATP7B)</option>
+                                            <option value="fabry_disease">Fabry Disease (GLA)</option>
+                                            <option value="gaucher_disease">Gaucher Disease Type 1 (GBA1)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-bp-model">Diagnostic Model under Evaluation:</label>
+                                        <select id="select-bp-model" class="form-select">
+                                            <option value="reference_baseline" selected>Reference Guideline Classifier
+                                            </option>
+                                            <option value="mock_fragile">Mock Fragile Diagnostic AI</option>
+                                            <option value="mock_robust">Mock Robust Diagnostic AI</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-bp-param">Perturbation Stress Dimension:</label>
+                                        <select id="select-bp-param" class="form-select">
+                                            <option value="noise_sigma" selected>Gaussian Biomarker Noise (&sigma;)
+                                            </option>
+                                            <option value="missing_lab_rate">Incomplete Workup Dropout Rate (%)</option>
+                                            <option value="atypical_age_shift_years">Atypical Age Window Shift (Years)
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="input-bp-step-size">Step Increment (&Delta;):</label>
+                                            <input type="number" id="input-bp-step-size" step="0.01" min="0.01"
+                                                max="5.0" value="0.05" class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="input-bp-max-steps">Max Search Steps:</label>
+                                            <input type="number" id="input-bp-max-steps" min="3" max="25" value="12"
+                                                class="form-input">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-bp-seed">Reproducibility Seed:</label>
+                                        <input type="number" id="input-bp-seed" value="42" class="form-input">
+                                    </div>
+                                </div>
+
+                                <div class="arena-launch-row" style="margin-top: 20px;">
+                                    <button id="btn-run-breaking-point" class="btn btn-primary">
+                                        <span>🎯</span> Find Minimal Breaking Point
+                                    </button>
+                                    <button id="btn-compare-breaking-point" class="btn btn-outline-cyan">
+                                        <span>⚖️</span> Benchmark All Models (Comparative Search)
+                                    </button>
+                                    <div id="bp-spinner" class="spinner-inline hidden">
+                                        <span class="live-pulse"></span> Searching perturbation gradient for minimal
+                                        failure delta...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Breaking Point Results Container -->
+                            <div id="bp-results-container" class="hidden" style="margin-top: 20px;">
+                                <!-- Breaking Point Summary KPI -->
+                                <div class="card glass-card" style="padding: 20px; margin-bottom: 20px;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                        <div>
+                                            <span class="kpi-label">Search Verdict</span>
+                                            <div style="margin-top: 4px;">
+                                                <span id="bp-status-badge" class="badge badge-danger"
+                                                    style="font-size: 0.95rem; padding: 6px 14px;">BREAKING POINT
+                                                    IDENTIFIED</span>
+                                            </div>
+                                        </div>
+                                        <div class="arena-kpi-grid"
+                                            style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0; gap: 12px;">
+                                            <div class="metric-tile">
+                                                <span class="metric-title">Minimal Delta to Break</span>
+                                                <span class="metric-val highlight-cyan" id="bp-minimal-delta">—</span>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <span class="metric-title">Failure Mode</span>
+                                                <span class="metric-val text-amber" id="bp-failure-mode">—</span>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <span class="metric-title">Steps Executed</span>
+                                                <span class="metric-val" id="bp-steps-count">—</span>
+                                            </div>
+                                            <div class="metric-tile">
+                                                <span class="metric-title">Confidence Drop</span>
+                                                <div
+                                                    style="font-family: var(--font-mono); font-size: 0.95rem; margin-top: 2px;">
+                                                    <span id="bp-baseline-confidence">—</span> &rarr; <span
+                                                        class="text-crimson" id="bp-broken-confidence">—</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Model Comparison Card (Shown if benchmark run) -->
+                                <div id="bp-comparison-card" class="card glass-card hidden"
+                                    style="padding: 20px; margin-bottom: 20px;">
+                                    <div class="card-header">
+                                        <h3>Comparative Model Brittleness Benchmark</h3>
+                                        <span class="badge badge-info">Multi-Model Stress-Test</span>
+                                    </div>
+                                    <div class="table-responsive" style="margin-top: 12px;">
+                                        <table class="arena-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Model Name</th>
+                                                    <th>Vulnerability Status</th>
+                                                    <th>Minimal Delta to Break (&Delta;)</th>
+                                                    <th>Failure Mode Triggered</th>
+                                                    <th>Break Step</th>
+                                                    <th>Confidence Trajectory</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-bp-comparison">
+                                                <!-- Populated dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Progressive Steps Progression Table -->
+                                <div class="card glass-card" style="padding: 20px;">
+                                    <div class="card-header">
+                                        <h3>Perturbation Gradient Search Trajectory</h3>
+                                        <span class="badge badge-mono">Step Progression Log</span>
+                                    </div>
+                                    <div class="table-responsive" style="margin-top: 12px;">
+                                        <table class="arena-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Search Step</th>
+                                                    <th>Perturbation Value (&Delta;)</th>
+                                                    <th>Model Prediction</th>
+                                                    <th>Confidence</th>
+                                                    <th>Ground Truth Match</th>
+                                                    <th>Prediction Stability</th>
+                                                    <th>Guardian Consistency</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-bp-steps">
+                                                <!-- Populated dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Trainee Differential Diagnosis & Scorecard (Trainee Role) -->
+                    <section id="tab-trainee-submission" class="tab-panel">
+                        <div class="arena-header-banner trainee-banner">
+                            <div class="arena-title-group">
+                                <h2>📋 Trainee Diagnostic Submission & Clinical Evaluator</h2>
+                                <p>Formulate your primary and differential diagnoses for the active synthetic patient
+                                    avatar. Test your clinical reasoning against expert medical ground truth.</p>
+                            </div>
+                            <div class="trainee-meta-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span class="badge badge-cyan" id="trainee-eval-patient-id">SYNTH-WIL-00A411</span>
+                                <span class="badge badge-mono" id="trainee-eval-tests-count">0 Tests Ordered</span>
+                                <span class="badge badge-mono" id="trainee-eval-sim-month">Sim Month: 0</span>
+                            </div>
+                        </div>
+
+                        <div class="trainee-submission-grid">
+                            <!-- Diagnosis Submission Form Card -->
+                            <div class="card glass-card trainee-form-card" style="padding: 24px;">
+                                <div class="card-header" style="padding: 0 0 16px 0;">
+                                    <h3>Formulate Diagnostic Hypothesis</h3>
+                                    <span class="badge badge-cyan">Blinded Trainee Input</span>
+                                </div>
+                                <form id="form-trainee-diagnosis" class="trainee-form-body"
+                                    style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+                                    <div class="form-group">
+                                        <label for="select-trainee-primary-diagnosis"><strong>Primary Suspected
+                                                Diagnosis (Required):</strong></label>
+                                        <select id="select-trainee-primary-diagnosis" class="form-select-sm"
+                                            style="width: 100%; padding: 10px;" required>
+                                            <option value="" disabled selected>Select primary rare-disease or metabolic
+                                                condition...</option>
+                                            <option value="Wilson Disease (Hepatolenticular Degeneration)">Wilson
+                                                Disease (Hepatolenticular Degeneration, ATP7B)</option>
+                                            <option value="Fabry Disease (Alpha-Galactosidase A Deficiency)">Fabry
+                                                Disease (Alpha-Galactosidase A Deficiency, GLA)</option>
+                                            <option value="Gaucher Disease Type 1 (Non-Neuronopathic)">Gaucher Disease
+                                                Type 1 (Glucocerebrosidase, GBA1)</option>
+                                            <option value="Hemochromatosis (HFE-associated Iron Overload)">
+                                                Hemochromatosis (HFE-associated Iron Overload)</option>
+                                            <option value="Autoimmune Hepatitis Type 1">Autoimmune Hepatitis Type 1
+                                            </option>
+                                            <option value="Multiple Sclerosis (Relapsing-Remitting)">Multiple Sclerosis
+                                                (Relapsing-Remitting)</option>
+                                            <option value="Niemann-Pick Disease Type C">Niemann-Pick Disease Type C
+                                                (NPC1/NPC2)</option>
+                                            <option value="Primary Biliary Cholangitis">Primary Biliary Cholangitis
+                                                (PBC)</option>
+                                            <option value="Huntington Disease">Huntington Disease (HTT trinucleotide
+                                                expansion)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label><strong>Quick Differential Suggestions (Click to add):</strong></label>
+                                        <div class="quick-diff-chips">
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Wilson Disease">Wilson Disease</button>
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Fabry Disease">Fabry Disease</button>
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Gaucher Disease Type 1">Gaucher Disease Type 1</button>
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Autoimmune Hepatitis">Autoimmune Hepatitis</button>
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Hemochromatosis">Hemochromatosis</button>
+                                            <button type="button" class="chip-btn diff-suggest-chip"
+                                                data-disease="Multiple Sclerosis">Multiple Sclerosis</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-trainee-differentials"><strong>Differential Diagnoses
+                                                Considered (Comma-separated):</strong></label>
+                                        <input type="text" id="input-trainee-differentials"
+                                            placeholder="e.g. Hemochromatosis, Autoimmune Hepatitis, MS"
+                                            class="form-input-sm" style="width: 100%; padding: 10px;">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="textarea-trainee-justification"><strong>Clinical Rationale &
+                                                Cardinal Evidence:</strong></label>
+                                        <textarea id="textarea-trainee-justification" rows="4" class="form-input-sm"
+                                            style="width: 100%; padding: 10px; font-family: var(--font-sans);"
+                                            placeholder="Document observed cardinal symptoms, pathognomonic physical signs (e.g. KF rings, angiokeratomas), lab findings (ceruloplasmin, lyso-Gb3), and reasons for ruling out alternative differentials..."></textarea>
+                                    </div>
+
+                                    <div class="trainee-form-actions" style="margin-top: 8px;">
+                                        <button type="submit" id="btn-submit-trainee-eval" class="btn btn-primary"
+                                            style="width: 100%;">
+                                            <span>🎯</span> Submit Diagnosis for Clinical Scoring
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Instant Evaluation Scorecard -->
+                            <div id="trainee-scorecard-box" class="card glass-card trainee-scorecard-card hidden"
+                                style="padding: 24px;">
+                                <div class="card-header" style="padding: 0 0 16px 0;">
+                                    <h3>Clinical Evaluator Scorecard</h3>
+                                    <span id="scorecard-outcome-badge" class="badge badge-success">EVALUATED</span>
+                                </div>
+                                <div class="scorecard-body"
+                                    style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+                                    <div class="scorecard-kpi-row">
+                                        <div class="kpi-mini-tile">
+                                            <span class="kpi-label">Diagnostic Accuracy</span>
+                                            <span id="scorecard-accuracy-val" class="kpi-val text-emerald">95%</span>
+                                        </div>
+                                        <div class="kpi-mini-tile">
+                                            <span class="kpi-label">Test Ordering Efficiency</span>
+                                            <span id="scorecard-efficiency-val" class="kpi-val text-cyan">88%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="scorecard-detail-item"
+                                        style="padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                                        <span class="label">Ground Truth Condition:</span>
+                                        <strong id="scorecard-ground-truth-name" class="highlight-cyan"
+                                            style="margin-left: 8px;">—</strong>
+                                    </div>
+
+                                    <div class="scorecard-section">
+                                        <h4 style="font-size: 0.85rem; color: var(--accent-emerald);">✓ Detected Key
+                                            Hallmarks</h4>
+                                        <ul id="scorecard-detected-hallmarks" class="hallmarks-checklist"></ul>
+                                    </div>
+
+                                    <div class="scorecard-section">
+                                        <h4 style="font-size: 0.85rem; color: var(--accent-amber);">⚠ Missed Cardinal
+                                            Hallmarks / Underutilized Tests</h4>
+                                        <ul id="scorecard-missed-hallmarks" class="hallmarks-checklist text-amber"></ul>
+                                    </div>
+
+                                    <div class="scorecard-debrief-box">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 6px;">👨‍🏫 Supervisor Debriefing
+                                            & Feedback</h4>
+                                        <p id="scorecard-debrief-text">—</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Session Submissions History -->
+                        <div class="card glass-card session-history-card" style="margin-top: 24px; padding: 20px;">
+                            <div class="card-header" style="padding: 0 0 16px 0;">
+                                <h3>My Diagnostic Submissions (Current Session)</h3>
+                                <span class="badge badge-mono">Trainee Session Log</span>
+                            </div>
+                            <div class="table-container" style="overflow-x: auto;">
+                                <table class="arena-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Submission ID</th>
+                                            <th>Avatar ID</th>
+                                            <th>Primary Diagnosis</th>
+                                            <th>True Condition</th>
+                                            <th>Evaluation</th>
+                                            <th>Efficiency</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trainee-history-tbody">
+                                        <tr>
+                                            <td colspan="6" class="text-muted" style="text-align: center;">No
+                                                submissions yet. Interview an avatar and submit your clinical assessment
+                                                above.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Supervisor Trainee Oversight (Supervisor Role) -->
+                    <section id="tab-supervisor-oversight" class="tab-panel">
+                        <div class="arena-header-banner supervisor-banner">
+                            <div class="arena-title-group">
+                                <h2>📊 Clinical Trainee Diagnostic Oversight & Audit</h2>
+                                <p>Track trainee cohort diagnostic accuracy, identify common diagnostic anchoring
+                                    biases, evaluate test ordering efficiency, and review clinical feedback debriefings.
+                                </p>
+                            </div>
+                            <button id="btn-refresh-oversight" class="btn btn-secondary">
+                                <span>🔄</span> Refresh Roster Data
+                            </button>
+                        </div>
+
+                        <!-- Oversight KPI Cards -->
+                        <div class="arena-kpi-grid">
+                            <div class="card glass-card kpi-card">
+                                <span class="kpi-label">Total Trainee Submissions</span>
+                                <span class="kpi-val text-cyan" id="oversight-total-submissions">0</span>
+                                <span class="kpi-sub">Across all disease cohorts</span>
+                            </div>
+                            <div class="card glass-card kpi-card">
+                                <span class="kpi-label">Overall Pass Rate</span>
+                                <span class="kpi-val text-emerald" id="oversight-pass-rate">0%</span>
+                                <span class="kpi-sub">Correct primary diagnosis</span>
+                            </div>
+                            <div class="card glass-card kpi-card">
+                                <span class="kpi-label">Average Diagnostic Accuracy</span>
+                                <span class="kpi-val text-purple" id="oversight-avg-accuracy">0%</span>
+                                <span class="kpi-sub">Guideline concordance score</span>
+                            </div>
+                            <div class="card glass-card kpi-card">
+                                <span class="kpi-label">Mean Test Efficiency</span>
+                                <span class="kpi-val text-amber" id="oversight-avg-efficiency">0%</span>
+                                <span class="kpi-sub">Minimizing redundant orders</span>
+                            </div>
+                        </div>
+
+                        <!-- Trainee Submissions Roster -->
+                        <div class="card glass-card" style="margin-top: 24px; padding: 20px;">
+                            <div class="card-header" style="padding: 0 0 16px 0;">
+                                <h3>Trainee Diagnostic Submissions Roster</h3>
+                                <span class="badge badge-purple">Institutional Audit Log</span>
+                            </div>
+                            <div class="table-container" style="overflow-x: auto;">
+                                <table class="arena-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Submission ID</th>
+                                            <th>Trainee</th>
+                                            <th>Patient ID</th>
+                                            <th>Submitted Diagnosis</th>
+                                            <th>Ground Truth</th>
+                                            <th>Outcome</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="oversight-submissions-tbody">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Clinical What-If Lab -->
+                    <section id="tab-what-if" class="tab-panel">
+                        <div class="arena-header-banner">
+                            <div class="arena-title-group">
+                                <h2>Clinical What-If Lab <span class="tag-version">Counterfactual Branching</span></h2>
+                                <p class="subtitle">
+                                    Fork isolated simulation branches from immutable patient avatar snapshots.
+                                    Experiment with alternative therapies, dose titrations, and adherence scenarios
+                                    without mutating the baseline patient.
+                                </p>
+                            </div>
+                            <div class="trainee-meta-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span class="badge badge-cyan" id="what-if-patient-id">Active Avatar</span>
+                                <span class="badge badge-purple" id="what-if-patient-disease">—</span>
+                                <span class="badge badge-mono" id="what-if-patient-month">Month 0</span>
+                            </div>
+                        </div>
+
+                        <div class="arena-matrix-grid" style="grid-template-columns: 380px 1fr; margin-bottom: 24px;">
+                            <!-- Branch Creator Form -->
+                            <div class="card glass-card" style="padding: 20px;">
+                                <div class="card-header">
+                                    <h3>Fork Counterfactual Branch</h3>
+                                    <span class="badge badge-info">Isolated Snapshot</span>
+                                </div>
+                                <form id="form-create-what-if-branch"
+                                    style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+                                    <div class="form-group">
+                                        <label for="input-what-if-branch-name">Branch Label / Hypothesis:</label>
+                                        <input type="text" id="input-what-if-branch-name" class="form-input"
+                                            placeholder="e.g. Optimal D-Penicillamine Adherence 95%" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-what-if-scenario">Counterfactual Therapy / Scenario:</label>
+                                        <select id="select-what-if-scenario" class="form-select">
+                                            <!-- Populated dynamically based on disease -->
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-what-if-adherence">Patient Medication Adherence: <span
+                                                id="label-what-if-adherence-val"
+                                                class="highlight-cyan">100%</span></label>
+                                        <input type="range" id="input-what-if-adherence" min="0" max="100" step="5"
+                                            value="100">
+                                        <small class="text-muted">Simulates variable patient compliance and
+                                            pharmacodynamic efficacy.</small>
+                                    </div>
+
+                                    <div class="quick-demo-accounts" style="margin-top: 4px;">
+                                        <small>⚡ Quick Presets:</small>
+                                        <div class="demo-chips-row">
+                                            <button type="button" id="btn-preset-adherent" class="chip-btn">🌿 Guideline
+                                                Adherence (95%)</button>
+                                            <button type="button" id="btn-preset-untreated" class="chip-btn">⚠️
+                                                Untreated Natural History (0%)</button>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" id="btn-submit-create-branch" class="btn btn-primary"
+                                        style="margin-top: 8px;">
+                                        <span>🌿</span> Fork Simulation Branch
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Active Branches Explorer -->
+                            <div class="card glass-card" style="padding: 20px;">
+                                <div class="card-header">
+                                    <h3>Active Patient Simulation Branches</h3>
+                                    <button type="button" id="btn-compare-what-if-branches"
+                                        class="btn btn-sm btn-outline-cyan">
+                                        <span>⚖️</span> Compare Selected Branches Side-by-Side
+                                    </button>
+                                </div>
+                                <div id="what-if-branches-list" style="margin-top: 14px;">
+                                    <!-- Rendered by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multi-Branch Comparison Container -->
+                        <div id="what-if-comparison-container" class="card glass-card hidden"
+                            style="padding: 20px; margin-bottom: 24px;">
+                            <div class="card-header">
+                                <h3>Multi-Branch Longitudinal Trajectory Comparison</h3>
+                                <span class="badge badge-purple">Comparative Dynamics</span>
+                            </div>
+                            <div style="margin-top: 14px;">
+                                <canvas id="canvas-what-if-trajectories"
+                                    style="width: 100%; height: 240px; background: var(--bg-surface); border-radius: var(--radius-md);"></canvas>
+                            </div>
+                            <div class="table-responsive" style="margin-top: 16px;">
+                                <table class="arena-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Branch Name</th>
+                                            <th>Intervention Scenario</th>
+                                            <th>Adherence</th>
+                                            <th>Final Timeline</th>
+                                            <th>Data Points</th>
+                                            <th>Key Biomarker Deltas vs Baseline</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-what-if-comparison">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Clinical Mystery Mode -->
+                    <section id="tab-mystery" class="tab-panel">
+                        <div class="arena-header-banner">
+                            <div class="arena-title-group">
+                                <h2>Clinical Mystery Mode <span class="tag-version">Interactive Diagnostic
+                                        Challenge</span></h2>
+                                <p class="subtitle">
+                                    Test your clinical intuition against blinded rare-disease synthetic patient avatars.
+                                    Conduct history taking, order targeted laboratory and imaging investigations within
+                                    a financial budget, and formulate your diagnostic reasoning.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Intake / Difficulty Selector View -->
+                        <div id="mystery-intake-selector" class="card glass-card"
+                            style="padding: 24px; max-width: 650px; margin: 0 auto;">
+                            <div class="card-header">
+                                <h3>Select Diagnostic Challenge Difficulty</h3>
+                                <span class="badge badge-info">Adaptive Workstation</span>
+                            </div>
+                            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+                                <div class="form-group">
+                                    <label for="select-mystery-difficulty">Challenge Tier:</label>
+                                    <select id="select-mystery-difficulty" class="form-select">
+                                        <option value="beginner">🟢 Beginner Tier ($5,000 Budget &bull; 45 Days
+                                            Turnaround &bull; Classic Signs)</option>
+                                        <option value="intermediate" selected>🟡 Intermediate Tier ($3,500 Budget &bull;
+                                            30 Days Turnaround &bull; Subtle Signs)</option>
+                                        <option value="advanced">🔴 Advanced Tier ($2,200 Budget &bull; 21 Days
+                                            Turnaround &bull; Atypical Onset)</option>
+                                    </select>
+                                    <small class="text-muted">Harder tiers enforce strict financial penalties, prolonged
+                                        turnaround times, and atypical presentations.</small>
+                                </div>
+
+                                <button type="button" id="btn-start-mystery-case" class="btn btn-primary btn-lg"
+                                    style="margin-top: 10px;">
+                                    <span>🕵️</span> Launch Blinded Mystery Case
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Mystery Case Workstation (Hidden until case started) -->
+                        <div id="mystery-active-workstation" class="hidden">
+                            <!-- Session Economics & Turnaround Bar -->
+                            <div class="arena-status-bar glass-card" style="margin-bottom: 20px;">
+                                <div class="status-meta">
+                                    <span class="meta-item">Session: <strong id="mystery-session-id-badge"
+                                            class="badge badge-mono">—</strong></span>
+                                    <span class="meta-item">Tier: <strong id="mystery-difficulty-badge"
+                                            class="badge badge-info">—</strong></span>
+                                </div>
+                                <div class="cohort-chips">
+                                    <span class="cohort-chip">Spent / Budget: <strong id="mystery-budget-spent"
+                                            class="highlight-cyan">$0 / $3,500</strong></span>
+                                    <span class="cohort-chip">Turnaround: <strong id="mystery-turnaround-days"
+                                            class="text-amber">0 / 30 Days</strong></span>
+                                    <span class="cohort-chip">Dialogue: <strong id="mystery-inquiries-count">0
+                                            Questions</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="trainee-submission-grid">
+                                <!-- Left: Patient Intake & Dialogue -->
+                                <div class="card glass-card" style="padding: 20px;">
+                                    <div class="card-header">
+                                        <h3>Blinded Patient Intake</h3>
+                                        <span class="badge badge-cyan">Clinical Presentation</span>
+                                    </div>
+                                    <div style="margin-top: 12px; font-size: 0.85rem; line-height: 1.5;">
+                                        <div><strong>Demographics:</strong> <span
+                                                id="mystery-patient-demographics">—</span></div>
+                                        <div style="margin-top: 4px;"><strong>Chief Complaint:</strong> <span
+                                                id="mystery-chief-complaint" class="text-secondary">—</span></div>
+                                        <div style="margin-top: 4px;"><strong>Baseline Vitals:</strong> <span
+                                                id="mystery-vitals"
+                                                style="font-family: var(--font-mono); color: var(--accent-cyan);">—</span>
+                                        </div>
+                                        <div style="margin-top: 4px;"><strong>Physical Examination:</strong> <span
+                                                id="mystery-physical-exam" class="text-secondary">—</span></div>
+                                    </div>
+
+                                    <!-- Dialogue Transcript -->
+                                    <div
+                                        style="margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                                        <h4>Clinical History-Taking Dialogue</h4>
+                                        <div id="mystery-dialogue-history"
+                                            style="max-height: 220px; overflow-y: auto; padding: 10px; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 8px;">
+                                            <div class="text-muted text-center"
+                                                style="font-size: 0.8rem; padding: 20px;">Ask the patient specific
+                                                questions regarding symptoms, family history, or systemic
+                                                manifestations.</div>
+                                        </div>
+
+                                        <form id="form-mystery-inquiry"
+                                            style="margin-top: 10px; display: flex; gap: 8px;">
+                                            <input type="text" id="input-mystery-inquiry" class="form-input"
+                                                placeholder="e.g. Any history of jaundice, tremors, or difficulty writing?"
+                                                required>
+                                            <button type="submit" class="btn btn-secondary">Ask</button>
+                                        </form>
+
+                                        <div class="quick-demo-accounts" style="margin-top: 8px;">
+                                            <small>⚡ Quick Inquiry Suggestions:</small>
+                                            <div class="demo-chips-row">
+                                                <button type="button" class="chip-btn mystery-inquiry-chip"
+                                                    data-query="Any family history of early liver disease or neurological conditions?">Family
+                                                    History</button>
+                                                <button type="button" class="chip-btn mystery-inquiry-chip"
+                                                    data-query="Do you experience burning pain in hands or feet, especially with heat or exercise?">Extremity
+                                                    Pain / Heat</button>
+                                                <button type="button" class="chip-btn mystery-inquiry-chip"
+                                                    data-query="Have you noticed easy bruising, frequent nosebleeds, or bone aching?">Bruising
+                                                    / Bone Pain</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Investigation Ordering & Final Formulation -->
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <!-- Investigation Order Station -->
+                                    <div class="card glass-card" style="padding: 20px;">
+                                        <div class="card-header">
+                                            <h3>Diagnostic Order Station</h3>
+                                            <span class="badge badge-warning">Simulated Cost & Turnaround</span>
+                                        </div>
+                                        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <select id="select-mystery-investigation" class="form-select"
+                                                style="flex: 1;">
+                                                <!-- Populated dynamically -->
+                                            </select>
+                                            <button type="button" id="btn-order-mystery-test"
+                                                class="btn btn-outline-cyan">
+                                                Order Test
+                                            </button>
+                                        </div>
+
+                                        <div class="table-responsive" style="margin-top: 14px;">
+                                            <table class="arena-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Investigation</th>
+                                                        <th>Modality</th>
+                                                        <th>Result Value</th>
+                                                        <th>Reference</th>
+                                                        <th>Expenditure</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-mystery-investigations">
+                                                    <tr>
+                                                        <td colspan="5" class="text-muted text-center">No investigations
+                                                            ordered yet.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Final Formulation Form -->
+                                    <div class="card glass-card" style="padding: 20px;">
+                                        <div class="card-header">
+                                            <h3>Formulate Diagnostic Assessment</h3>
+                                            <span class="badge badge-purple">Final Submission</span>
+                                        </div>
+                                        <form id="form-mystery-submission"
+                                            style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+                                            <div class="form-group">
+                                                <label for="select-mystery-primary-diagnosis"><strong>Primary Suspected
+                                                        Diagnosis:</strong></label>
+                                                <select id="select-mystery-primary-diagnosis" class="form-select"
+                                                    required>
+                                                    <option value="" disabled selected>Select suspected condition...
+                                                    </option>
+                                                    <option value="Wilson Disease (Hepatolenticular Degeneration)">
+                                                        Wilson Disease (Hepatolenticular Degeneration, ATP7B)</option>
+                                                    <option value="Fabry Disease (Alpha-Galactosidase A Deficiency)">
+                                                        Fabry Disease (Alpha-Galactosidase A Deficiency, GLA)</option>
+                                                    <option value="Gaucher Disease Type 1 (Non-Neuronopathic)">Gaucher
+                                                        Disease Type 1 (Glucocerebrosidase, GBA1)</option>
+                                                    <option value="Hemochromatosis (HFE-associated Iron Overload)">
+                                                        Hemochromatosis (HFE-associated Iron Overload)</option>
+                                                    <option value="Autoimmune Hepatitis Type 1">Autoimmune Hepatitis
+                                                        Type 1</option>
+                                                    <option value="Multiple Sclerosis (Relapsing-Remitting)">Multiple
+                                                        Sclerosis (Relapsing-Remitting)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="input-mystery-differentials"><strong>Differential Diagnoses
+                                                        (Comma-separated):</strong></label>
+                                                <input type="text" id="input-mystery-differentials" class="form-input"
+                                                    placeholder="e.g. Autoimmune Hepatitis, Hemochromatosis">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="textarea-mystery-rationale"><strong>Clinical Rationale &
+                                                        Cardinal Clues:</strong></label>
+                                                <textarea id="textarea-mystery-rationale" rows="3" class="form-input"
+                                                    placeholder="Document specific biomarker thresholds, pathognomonic physical signs, or genetic markers confirming this diagnosis..."></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="textarea-mystery-management"><strong>Recommended Immediate
+                                                        Management Plan:</strong></label>
+                                                <textarea id="textarea-mystery-management" rows="2" class="form-input"
+                                                    placeholder="e.g. Copper chelation with penicillamine, dietary restriction, screening family members..."></textarea>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-primary" style="margin-top: 6px;">
+                                                <span>🏁</span> Submit Diagnosis & Unmask Truth
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scorecard & Educational Debriefing View (Hidden until submitted) -->
+                        <div id="mystery-debriefing-card" class="card glass-card hidden"
+                            style="padding: 24px; margin-top: 20px;">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Educational Debriefing & Ground Truth Unmasked</h3>
+                                    <div style="margin-top: 4px;">
+                                        <span id="debrief-ground-truth-disease"
+                                            style="font-size: 1.2rem; font-weight: 800; color: var(--accent-purple);">Disease
+                                            Name</span>
+                                        &bull; <span id="debrief-ground-truth-gene" class="badge badge-mono">—</span>
+                                    </div>
+                                </div>
+                                <span id="debrief-accuracy-badge" class="badge badge-success"
+                                    style="font-size: 1rem; padding: 6px 14px;">CORRECT DIAGNOSIS (100%)</span>
+                            </div>
+
+                            <!-- Scorecard KPIs -->
+                            <div class="arena-kpi-grid" style="margin-top: 18px;">
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Cost-Effectiveness</span>
+                                    <div class="kpi-val highlight-cyan" id="debrief-score-cost">100/100</div>
+                                    <span class="kpi-sub">Adherence to financial budget</span>
+                                </div>
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Turnaround Efficiency</span>
+                                    <div class="kpi-val highlight-purple" id="debrief-score-turnaround">100/100</div>
+                                    <span class="kpi-sub">Diagnostic speed & schedule</span>
+                                </div>
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Diagnostic Parsimony</span>
+                                    <div class="kpi-val text-emerald" id="debrief-score-parsimony">100/100</div>
+                                    <span class="kpi-sub">Minimal low-yield testing</span>
+                                </div>
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Overall Clinical Mastery</span>
+                                    <div class="kpi-val text-cyan" id="debrief-score-mastery">100%</div>
+                                    <span class="kpi-sub">Weighted diagnostic acumen</span>
+                                </div>
+                            </div>
+
+                            <!-- Debriefing Content Columns -->
+                            <div class="arena-matrix-grid" style="margin-top: 20px;">
+                                <div class="card glass-card" style="padding: 18px;">
+                                    <h4 style="color: var(--accent-cyan); margin-bottom: 10px;">🔍 Cardinal Diagnostic
+                                        Hallmarks</h4>
+                                    <ul id="debrief-cardinal-clues" class="hallmarks-checklist">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+
+                                    <h4 style="color: var(--accent-crimson); margin-top: 16px; margin-bottom: 10px;">⚠️
+                                        Low-Yield / Wasteful Orders</h4>
+                                    <ul id="debrief-wasteful-tests" class="hallmarks-checklist">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+                                </div>
+
+                                <div class="card glass-card" style="padding: 18px;">
+                                    <h4 style="color: var(--accent-purple); margin-bottom: 10px;">📋
+                                        Guideline-Recommended Workup Pathway</h4>
+                                    <p id="debrief-guideline-pathway"
+                                        style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                                        Guideline recommendations...
+                                    </p>
+
+                                    <h4 style="color: var(--accent-emerald); margin-top: 16px; margin-bottom: 10px;">📚
+                                        Peer-Reviewed Literature Grounding</h4>
+                                    <div id="debrief-literature-refs">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                                <button type="button" id="btn-mystery-play-again" class="btn btn-primary">
+                                    <span>🔄</span> Challenge Another Mystery Case
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Supervisor Oversight Section -->
+                        <div id="mystery-supervisor-section" class="card glass-card hidden"
+                            style="padding: 24px; margin-top: 24px;">
+                            <div class="card-header">
+                                <h3>Cohort Mystery Challenge Performance Log</h3>
+                                <span class="badge badge-purple">Supervisor Evaluator Log</span>
+                            </div>
+                            <div class="table-responsive" style="margin-top: 14px;">
+                                <table class="arena-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Session ID</th>
+                                            <th>Trainee</th>
+                                            <th>Ground Truth</th>
+                                            <th>Accuracy</th>
+                                            <th>Mastery Score</th>
+                                            <th>Total Expenditure</th>
+                                            <th>Turnaround</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-supervisor-mystery-history">
+                                        <tr>
+                                            <td colspan="7" class="text-muted text-center">Loading completed sessions...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Evidence Explorer -->
+                    <section id="tab-evidence" class="tab-panel">
+                        <div class="arena-header-banner">
+                            <div class="arena-title-group">
+                                <h2>Evidence Explorer <span class="tag-version">PubMed Grounding</span></h2>
+                                <p class="subtitle">
+                                    Comprehensive literature grounding linking patient avatar symptoms, biomarkers,
+                                    imaging studies, and treatment responses directly to peer-reviewed PubMed citations
+                                    with permanent provenance.
+                                </p>
+                            </div>
+                            <div class="arena-subtabs-nav">
+                                <button class="btn btn-sm evidence-subtab-btn active" data-view="provenance">🧬 Active
+                                    Avatar Provenance</button>
+                                <button class="btn btn-sm evidence-subtab-btn" data-view="catalog">📚 Literature Search
+                                    & Registry</button>
+                                <button class="btn btn-sm evidence-subtab-btn" data-view="biomarkers">🧪 Biomarker
+                                    Provenance Catalog</button>
+                            </div>
+                        </div>
+
+                        <!-- High-Level Evidence Metrics -->
+                        <div class="arena-status-bar glass-card" style="margin-bottom: 20px;">
+                            <div class="status-meta">
+                                <span class="meta-item">Indexed Publications: <strong id="kpi-evidence-pubs"
+                                        class="highlight-cyan">—</strong></span>
+                                <span class="meta-item">Supported Biomarkers: <strong id="kpi-evidence-biomarkers"
+                                        class="badge badge-info">—</strong></span>
+                            </div>
+                            <div class="cohort-chips" id="evidence-tier-chips">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- SUBVIEW 1: Active Patient Finding Provenance -->
+                        <div id="view-evidence-provenance" class="evidence-subview">
+                            <div class="card glass-card" style="padding: 20px; margin-bottom: 20px;">
+                                <div class="card-header">
+                                    <div>
+                                        <h3>Active Patient Finding Provenance Inspector</h3>
+                                        <div style="margin-top: 4px;">
+                                            Avatar: <strong id="provenance-patient-id" class="badge badge-mono">Active
+                                                Avatar</strong>
+                                            &bull; Disease: <strong id="provenance-disease-name"
+                                                class="text-purple">—</strong>
+                                            &bull; Stage: <strong id="provenance-stage" class="text-muted">—</strong>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="btn-refresh-patient-provenance"
+                                        class="btn btn-sm btn-outline-cyan">
+                                        <span>🔄</span> Refresh Provenance Mapping
+                                    </button>
+                                </div>
+
+                                <div id="active-patient-provenance-box" style="margin-top: 16px;">
+                                    <div class="text-muted text-center" style="padding: 24px;">Loading evidence
+                                        provenance for active avatar...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBVIEW 2: Literature Catalog & Search -->
+                        <div id="view-evidence-catalog" class="evidence-subview hidden">
+                            <div class="card glass-card" style="padding: 20px; margin-bottom: 20px;">
+                                <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+                                    <h3>Peer-Reviewed PubMed Literature Registry</h3>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <select id="filter-evidence-disease" class="form-select-sm">
+                                            <option value="all" selected>All Rare Diseases</option>
+                                            <option value="wilson_disease">Wilson Disease (ATP7B)</option>
+                                            <option value="fabry_disease">Fabry Disease (GLA)</option>
+                                            <option value="gaucher_disease">Gaucher Disease Type 1 (GBA1)</option>
+                                        </select>
+                                        <input type="text" id="input-evidence-search" class="form-input-sm"
+                                            placeholder="Search title, author, PMID..." style="width: 220px;">
+                                    </div>
+                                </div>
+
+                                <div class="literature-articles-list" id="literature-articles-list"
+                                    style="margin-top: 14px;">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBVIEW 3: Biomarker Provenance Catalog -->
+                        <div id="view-evidence-biomarkers" class="evidence-subview hidden">
+                            <div class="card glass-card" style="padding: 20px;">
+                                <div class="card-header">
+                                    <h3>Biomarker & Clinical Finding Provenance Registry</h3>
+                                    <span class="badge badge-info">EASL & ACMG Grounding</span>
+                                </div>
+                                <div class="table-responsive" style="margin-top: 14px;">
+                                    <table class="arena-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Finding & Code</th>
+                                                <th>Category</th>
+                                                <th>Clinical Significance & Pathophysiology</th>
+                                                <th>Supporting PubMed Citations</th>
+                                                <th>Guideline Consensus</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-biomarker-catalog">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB: Synthetic Patient Population Lab -->
+                    <section id="tab-population" class="tab-panel">
+                        <div class="arena-header-banner supervisor-banner">
+                            <div class="arena-title-group">
+                                <h2>Synthetic Patient Population Lab <span class="tag-version">Cohort Synthesizer</span>
+                                </h2>
+                                <p>
+                                    Generate high-throughput cohorts of synthetic rare-disease patient avatars.
+                                    Automatically execute full 5-category Consistency Guardian auditing on every avatar
+                                    and analyze cohort demographic and biomarker distributions.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Cohort Generator Card -->
+                        <div class="card glass-card arena-config-card" style="padding: 20px; margin-bottom: 24px;">
+                            <div class="card-header">
+                                <h3>Population Cohort Generator Configuration</h3>
+                                <span class="badge badge-info">Batch Synthesis Matrix</span>
+                            </div>
+                            <form id="form-generate-cohort" style="margin-top: 14px;">
+                                <div class="arena-config-grid">
+                                    <div class="form-group">
+                                        <label for="input-cohort-name">Cohort Identifier Name:</label>
+                                        <input type="text" id="input-cohort-name" class="form-input"
+                                            value="Wilson_Pediatric_Screening_Cohort" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-cohort-disease">Target Rare Disease Cohort:</label>
+                                        <select id="select-cohort-disease" class="form-select">
+                                            <option value="all">Mixed Rare Disease Population (Wilson, Fabry, Gaucher)
+                                            </option>
+                                            <option value="wilson_disease" selected>Wilson Disease (ATP7B)</option>
+                                            <option value="fabry_disease">Fabry Disease (GLA)</option>
+                                            <option value="gaucher_disease">Gaucher Disease Type 1 (GBA1)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-cohort-size">Cohort Population Size (5 - 50):</label>
+                                        <input type="number" id="input-cohort-size" min="5" max="50" value="10"
+                                            class="form-input" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-cohort-age-dist">Demographic Age Spread:</label>
+                                        <select id="select-cohort-age-dist" class="form-select">
+                                            <option value="balanced" selected>Uniform Balanced (8 - 70 years)</option>
+                                            <option value="pediatric">Pediatric Focus (8 - 18 years)</option>
+                                            <option value="young_adult">Young Adult (18 - 35 years)</option>
+                                            <option value="late_adult">Late Adult (35 - 65 years)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select-cohort-severity">Disease Staging Distribution:</label>
+                                        <select id="select-cohort-severity" class="form-select">
+                                            <option value="mixture" selected>Natural Mixture (Early, Moderate, Advanced)
+                                            </option>
+                                            <option value="mild">Predominantly Mild / Early</option>
+                                            <option value="moderate">Predominantly Moderate</option>
+                                            <option value="severe">Predominantly Severe / Advanced</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="input-cohort-seed">Reproducibility Seed:</label>
+                                        <div class="seed-input-group">
+                                            <input type="number" id="input-cohort-seed" value="42" class="form-input">
+                                            <button type="button" id="btn-cohort-random-seed"
+                                                class="btn btn-secondary btn-sm">🎲</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="arena-launch-row" style="margin-top: 20px;">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <span>👥</span> Synthesize Population Cohort
+                                    </button>
+                                    <div id="cohort-generator-spinner" class="spinner-inline hidden">
+                                        <span class="live-pulse"></span> Generating avatars & running Consistency
+                                        Guardian audits...
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Population Analytics Container -->
+                        <div id="population-analytics-container" class="hidden">
+                            <!-- Cohort Meta Bar -->
+                            <div class="arena-status-bar glass-card" style="margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <label for="select-population-cohort"
+                                        style="font-weight: 600; font-size: 0.85rem;">Active Cohort:</label>
+                                    <select id="select-population-cohort" class="form-select-sm"
+                                        style="min-width: 250px;">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                    <span class="cohort-chip">ID: <strong id="cohort-id-badge">—</strong></span>
+                                    <span class="cohort-chip">Created: <strong
+                                            id="cohort-created-badge">—</strong></span>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <a id="btn-export-cohort-csv" href="#" target="_blank"
+                                        class="btn btn-sm btn-outline-cyan">📥 Export CSV</a>
+                                    <a id="btn-export-cohort-json" href="#" target="_blank"
+                                        class="btn btn-sm btn-outline-cyan">📥 Export JSON</a>
+                                    <button type="button" id="btn-bridge-cohort-arena" class="btn btn-sm btn-primary">⚡
+                                        Bridge to Adversarial Arena</button>
+                                </div>
+                            </div>
+
+                            <!-- Demographics & Validation KPI Grid -->
+                            <div class="arena-kpi-grid">
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Cohort Age Distribution</span>
+                                    <div class="kpi-val highlight-cyan" id="cohort-age-mean">—</div>
+                                    <span class="kpi-sub">Mean ± Standard Deviation (yrs)</span>
+                                </div>
+
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Sex Representation</span>
+                                    <div class="kpi-val highlight-purple" id="cohort-sex-ratio">—</div>
+                                    <span class="kpi-sub">Male vs Female Breakdown</span>
+                                </div>
+
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Consistency Guardian Validation</span>
+                                    <div class="kpi-val text-emerald" id="cohort-audit-pass-rate">100%</div>
+                                    <span class="kpi-sub"><span id="cohort-audit-total">—</span> Avatars Validated
+                                        (<span id="cohort-audit-checks-count">—</span> checks)</span>
+                                </div>
+
+                                <div class="card glass-card kpi-card">
+                                    <span class="kpi-label">Staging Spread</span>
+                                    <div id="cohort-stages-breakdown"
+                                        style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Member Roster Table Card -->
+                            <div class="card glass-card arena-cases-card" style="padding: 20px;">
+                                <div class="card-header">
+                                    <h3>Cohort Patient Avatar Roster</h3>
+                                    <span class="badge badge-info">Individual Patient Specifications</span>
+                                </div>
+                                <div class="table-responsive" style="margin-top: 14px;">
+                                    <table class="arena-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient Avatar ID</th>
+                                                <th>Condition</th>
+                                                <th>Age</th>
+                                                <th>Sex</th>
+                                                <th>Stage</th>
+                                                <th>Key Biomarkers</th>
+                                                <th>Guardian Status</th>
+                                                <th>Workspace Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-population-roster">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </main>
+            </div> <!-- /.app-main-layout -->
+        </div> <!-- /.app-layout-container -->
+    </div> <!-- /view-app-shell -->
+
+    <!-- Modal: Generate New Avatar -->
+    <div id="modal-create-avatar" class="modal-overlay hidden">
+        <div class="modal-dialog card glass-card">
+            <div class="modal-header">
+                <h3>Generate Multimodal Rare-Disease Patient Avatar</h3>
+                <button class="btn-close-modal" id="btn-close-create-modal">&times;</button>
+            </div>
+            <form id="form-create-avatar" class="modal-body">
+                <div class="form-group">
+                    <label for="select-new-disease">Target Rare Disease:</label>
+                    <select id="select-new-disease" required>
+                        <option value="wilson_disease">Wilson Disease (ATP7B, OMIM #277900)</option>
+                        <option value="fabry_disease">Fabry Disease (GLA, OMIM #301500)</option>
+                        <option value="gaucher_disease">Gaucher Disease Type 1 (GBA1, OMIM #230800)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="input-new-age">Age (Years, optional):</label>
+                        <input type="number" id="input-new-age" min="8" max="75" placeholder="Auto-sampled">
+                    </div>
+                    <div class="form-group">
+                        <label for="select-new-sex">Biological Sex (optional):</label>
+                        <select id="select-new-sex">
+                            <option value="">Auto-sampled</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="input-new-seed">Reproducibility Seed:</label>
+                    <input type="number" id="input-new-seed" placeholder="Random if empty">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-create">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-create">Synthesize Avatar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Deep Case Inspector -->
+    <div id="modal-case-inspector" class="modal-overlay hidden">
+        <div class="modal-dialog modal-xl card glass-card">
+            <div class="modal-header">
+                <div>
+                    <h3 id="inspector-disease-title">Case Deep Inspector</h3>
+                    <div class="inspector-badges-row">
+                        <span id="inspector-case-id-badge" class="badge badge-mono">CASE ID</span>
+                        <span id="inspector-seed-badge" class="badge badge-mono">Seed: —</span>
+                        <span id="inspector-status-badge" class="badge badge-success">EVALUATED</span>
+                        <span id="inspector-failure-badge" class="badge badge-danger">FAILURE MODE</span>
+                    </div>
+                </div>
+                <button class="btn-close-modal" id="btn-close-inspector">&times;</button>
+            </div>
+            <div class="inspector-tabs-nav">
+                <button class="inspector-tab-btn active" data-tab="diff">🔍 Side-by-Side Diff</button>
+                <button class="inspector-tab-btn" data-tab="transformations">⚙️ Applied Transformations</button>
+                <button class="inspector-tab-btn" data-tab="decision">🧠 Model Predictions & Differentials</button>
+                <button class="inspector-tab-btn" data-tab="constraints">🛡️ Physiological Constraints</button>
+                <button class="inspector-tab-btn" data-tab="evidence">📚 Literature Provenance</button>
+            </div>
+            <div id="inspector-tab-content" class="modal-body inspector-modal-body">
+                <!-- Populated dynamically by JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-close-inspector-footer">Close Inspector</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/api.js?v=2.6.0"></script>
+    <script src="/js/state.js?v=2.6.0"></script>
+    <script src="/js/utils/chartRenderer.js?v=2.6.0"></script>
+    <script src="/js/utils/imagingRenderer.js?v=2.6.0"></script>
+    <script src="/js/components/authPortal.js?v=2.6.0"></script>
+    <script src="/js/components/patientWorkspace.js?v=2.6.3"></script>
+    <script src="/js/components/interactiveConsultation.js?v=2.6.5"></script>
+    <script src="/js/components/multimodalViewer.js?v=2.6.0"></script>
+    <script src="/js/components/scenarioSimulation.js?v=2.6.0"></script>
+    <script src="/js/components/traineeDiagnostics.js?v=2.6.0"></script>
+    <script src="/js/components/supervisorOversight.js?v=2.6.0"></script>
+    <script src="/js/components/uncertaintyEvidence.js?v=2.6.0"></script>
+    <script src="/js/components/validationPrivacy.js?v=2.6.0"></script>
+    <script src="/js/components/stressTesting.js?v=2.6.0"></script>
+    <script src="/js/components/adversarialArena.js?v=2.6.0"></script>
+    <script src="/js/components/evidenceExplorer.js?v=2.6.0"></script>
+    <script src="/js/components/whatIfLab.js?v=2.6.0"></script>
+    <script src="/js/components/mysteryMode.js?v=2.6.0"></script>
+    <script src="/js/components/populationLab.js?v=2.6.0"></script>
+    <script src="/js/app.js?v=2.6.0"></script>
+</body>
+
+</html>
